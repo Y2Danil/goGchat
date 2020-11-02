@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+<!---->
+{% block content %}
+<div class="login">
+    <strong class='display-3'>Авторизация</strong>
+    <form method="post" action="/login">
+        <input type="text" name='username' id='username' class='col-mg-12 col-6'>
+        <input type="text" name='password' id='password' class='col-mg-12 col-6'>
+        <button type="submit">Отправить</button> {% module xsrf_form_html() %}
+    </form>
+</div>
+{% end %}

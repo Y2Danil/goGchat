@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+<!---->
+{% block content %}
+
+<div class="register">
+    <strong class='display-3'>Регестрация</strong>
+    <form method="post" action="/register">
+        <input type="text" name='username' id='username_reg' class='col-mg-12 col-6'>
+        <input type="text" name='password1' id='password1' class='col-mg-12 col-6'>
+        <input type="text" name='password2' id='password2' class='col-mg-12 col-6'>
+        <button type="submit">Отправить</button> {% module xsrf_form_html() %}
+    </form>
+</div>
+{% end %}

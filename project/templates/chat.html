@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% for message in messages %}
+    <div class='message bg-dark'>
+      <span>
+        <strong class='USER_NAME'>{{ message[3] }}</strong><br>
+        <span>{{ message[2] }}</span>
+      </span>
+    </div>
+    <div class='message bg-dark'>
+      <span>
+        <strong class='USER_NAME'>ffff</strong><br>
+        <span>{ddddd
+          ddssdd<br>
+          dsdsds
+          dssddsdsdssd
+        </span>
+      </span>
+    </div>
+  {% end %}
+
+  <style>
+    .message {
+      position: relative;
+      padding: 10px; /* Поля */
+      margin: 0 auto;
+      margin-bottom: 10px;
+      color: #fff;
+      width: 90%;
+      border: 1px solid rgb(0, 0, 0);
+    }
+  </style>
+
+  <script>
+    function your_message(){
+      you_name = document.getElementsByClassName('USER_NAME')[0];
+      you_name = you_name.innerHTML;
+      message_names = document.getElementsByClassName('message');
+      let names = [];
+      for(let i in message_names){
+        let j = i.getElementsByClassName('USER_NAME')[0];
+        names.push(j);
+      }
+      alert(names);
+      for(let j in names) {
+        if(String(j) == String(you_name)) {
+          alert(j);
+          j.style.color='red';
+        }   
+      }
+    } your_message();
+  </script>
+{% end %}
