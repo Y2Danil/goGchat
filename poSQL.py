@@ -3,7 +3,7 @@ import psycopg2
 
 class SQLiter:
   def __init__(self):
-    self.DATABASE_URL = os.environ['DATABASE_URL']
+    #self.DATABASE_URL = os.environ['DATABASE_URL']
     #self.con = psycopg2.connect(DATABASE_URL, sslmode='require')
     self.con = psycopg2.connect(dbname='d48m04bohdscjt',
                                 user='sdhjmwjlisovxf', 
