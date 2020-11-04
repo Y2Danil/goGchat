@@ -13,26 +13,26 @@ class SQLiter:
     
   def select_users(self):
     with self.con:
-      self.cur.execute('SELECT * FROM "User"')
+      self.cur.execute("""SELECT * FROM "User";""")
       result = self.cur.fetchall()
       return result
     
   def select_user_po_id(self, id):
-    self.cur.execute("""SELECT * FROM "User" WHERE id=?""", (id,))
+    self.cur.execute("""SELECT * FROM "User" WHERE id=%s""", (id,))
     result = self.cur.fetchall()
     return result
     
   def add_user(self, name, password):
     with self.con:
-      return self.cur.execute("""INSERT INTO "User"(name, password, admin) VALUES (?, ?, False)""", (name, password))
+      return self.cur.execute("""INSERT INTO "User"(name, password, admin) VALUES (%s, %s, False)""", (name, password))
     
   def check_user(self, name, password):
-    self.cur.execute("""SELECT name, password, admin FROM "User" WHERE name=? and password=?""", (name, password))
+    self.cur.execute("""SELECT name, password, admin FROM "User" WHERE name=%s and password=%s""", (name, password))
     result = self.cur.fetchall()
     return result
   
   def check_user_only_name(self, name):
-    self.cur.execute("""SELECT admin FROM "User" WHERE name=?""", (name,))
+    self.cur.execute("""SELECT admin FROM "User" WHERE name=%s""", (name,))
     result = self.cur.fetchall()
     return result
     
