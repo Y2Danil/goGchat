@@ -26,7 +26,7 @@ class Chat(MainHandler):
     for m in messages:
       index = messages.index(m)
       m = list(m)
-      user_name = s.select_user_po_id(int(m[1]))[0][0]
+      user_name = s.select_user_po_id(int(m[3]))[0][0]
       m.append(user_name)
       messages[index] = m
     self.render('templates/chat.html', messages=messages)
