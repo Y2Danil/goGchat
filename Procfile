@@ -1,1 +1,1 @@
-web: python3 main.py --port=8080
+web: python3 main.py
