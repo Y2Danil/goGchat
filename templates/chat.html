@@ -1,23 +1,29 @@
 {% extends "base.html" %}
 
 {% block content %}
-  {% for message in messages %}
-    <div class='message bg-dark'>
-      <span>
-        <strong class='USER_NAME'>{{ message[3] }}</strong><br>
-        <span>{{ message[2] }}</span>
-      </span>
-    </div>
-    <div class='message bg-dark'>
-      <span>
-        <strong class='USER_NAME'>ffff</strong><br>
-        <span>{ddddd
-          ddssdd<br>
-          dsdsds
-          dssddsdsdssd
+  {% if messages %}
+    {% for message in messages %}
+      <div class='message bg-dark'>
+        <span>
+          <strong class='USER_NAME'>{{ message[3] }}</strong><br>
+          <span>{{ message[2] }}</span>
         </span>
-      </span>
-    </div>
+      </div>
+      <div class='message bg-dark'>
+        <span>
+          <strong class='USER_NAME'>ffff</strong><br>
+          <span>{ddddd
+            ddssdd<br>
+            dsdsds
+            dssddsdsdssd
+          </span>
+        </span>
+      </div>
+    {% end %}
+  {% else %}
+
+    <h1>Error 228</h1>
+
   {% end %}
 
   <style>
@@ -32,7 +38,7 @@
     }
   </style>
 
-  <script>
+  <!-- <script>
     function your_message(){
       you_name = document.getElementsByClassName('USER_NAME')[0];
       you_name = you_name.innerHTML;
@@ -50,5 +56,5 @@
         }   
       }
     } your_message();
-  </script>
+  </script> -->
 {% end %}
