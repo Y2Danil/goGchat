@@ -5,7 +5,7 @@ import tornado.httpserver
 
 import re
 import os
-from SQLiter import *
+from poSQL import *
 
 s = SQLiter()
 
