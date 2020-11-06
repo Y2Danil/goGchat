@@ -3,14 +3,22 @@ import tornado.web
 import tornado
 import tornado.httpserver
 
+import json
 import re
 import os
+
 from poSQL import *
+import owm
 
 s = SQLiter()
+we = owm.Weather()
 
 class MainHandler(tornado.web.RequestHandler):
   s = SQLiter()
+  # int_temp = we.temp_in_PK()
+  # str_temp = str(we.temp_in_PK())
+  temp = we.temp_in_PK()
+    
   def get(self):
     if self.current_user:
       self.current_user = self.current_user
@@ -26,14 +34,15 @@ class Chat(MainHandler):
     for m in messages:
       index = messages.index(m)
       m = list(m)
-      user_name = s.select_user_po_id(int(m[3]))[0][0]
+      user_name = s.select_user_po_id(int(m[3]))[0][1]
+      print(user_name)
       m.append(user_name)
       messages[index] = m
-    self.render('templates/chat.html', messages=messages)
+    self.render('templates/chat.html', messages=messages, temp=self.temp)
     
 class ImportRegister(MainHandler):
   def get(self):
-    self.render('templates/register.html')
+    self.render('templates/register.html', temp=self.temp)
     
 class Register(MainHandler):
   def post(self):
@@ -48,7 +57,7 @@ class Register(MainHandler):
     
 class ImportLogin(MainHandler):
   def get(self):
-    self.render('templates/login.html')
+    self.render('templates/login.html', temp=self.temp)
     
 class Login(MainHandler):  
   @tornado.gen.coroutine
@@ -60,7 +69,7 @@ class Login(MainHandler):
     print(users)
     if s.check_user(username, password):
       print(s.check_user_only_name(username))
-      self.set_secure_cookie("user",  self.get_argument("username"), expires_days=2)
+      self.set_secure_cookie("user",  self.get_argument("username"), expires_days=3)
         
     self.current_user = self.current_user
     self.redirect("/")
@@ -71,6 +80,7 @@ class Logout(MainHandler):
   def get(self):
     self.clear_cookie("user")
     self.redirect("/")
+    
     
 def make_app():
   return tornado.web.Application([
@@ -86,4 +96,5 @@ if __name__ == "__main__":
   app = make_app()
   port = int(os.environ.get("PORT", 5000))
   app.listen(port)
+  #app.listen(8080)
   tornado.ioloop.IOLoop.current().start()
