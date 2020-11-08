@@ -1,7 +1,10 @@
 import os
+import datetime
+from datetime import datetime, date, time, timedelta, timezone
+import calendar
 import psycopg2
 
-class SQLiter:
+class poSQL:
   def __init__(self):
     #self.DATABASE_URL = os.environ['DATABASE_URL']
     #self.con = psycopg2.connect(DATABASE_URL, sslmode='require')
@@ -21,6 +24,11 @@ class SQLiter:
     self.cur.execute("""SELECT * FROM "User" WHERE id=%s""", (id,))
     result = self.cur.fetchall()
     return result
+  
+  def select_user_po_name(self, name):
+    self.cur.execute("""SELECT * FROM "User" WHERE name=%s""", (name,))
+    result = self.cur.fetchall()
+    return result
     
   def add_user(self, name, password):
     with self.con:
@@ -37,10 +45,33 @@ class SQLiter:
     return result
     
   def select_messages(self):
+    self.cur.execute("""SELECT * FROM "Message";""")
+    result = self.cur.fetchall()
+    return result
+  
+  def add_message(self, text, rubric_id, user_id):
     with self.con:
-      self.cur.execute("""SELECT * FROM "Message";""")
-      result = self.cur.fetchall()
-      return result
+      return self.cur.execute("""INSERT INTO "Message"(text, pub_date, rubric_id, user_id) VALUES (%s, %s, %s, %s);""", (text, datetime.today(), rubric_id, user_id))
+  
+  def select_rubric_messages(self, rubric_id):
+    self.cur.execute("""SELECT * FROM "Message" WHERE rubric_id=%s;""", (rubric_id,))
+    result = self.cur.fetchall()
+    return result
+  
+  def select_rubric_only_id(self, id):
+    self.cur.execute("""SELECT * FROM "Rubric" WHERE id=%s;""", (id,))
+    result = self.cur.fetchall()
+    return result
+  
+  def select_rubric_only_title(self, rubric_title):
+    self.cur.execute("""SELECT * FROM "Rubric" WHERE title=%s;""", (rubric_title,))
+    result = self.cur.fetchall()
+    return result
+  
+  def select_rubrics(self):
+    self.cur.execute("""SELECT * FROM "Rubric";""")
+    result = self.cur.fetchall()
+    return result
     
   def close(self):
     return self.con.close()

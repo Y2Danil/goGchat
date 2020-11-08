@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-  {% if messages %}
-    {% for message in messages %}
-      <div class='message bg-dark'>
-        <span>
-          <strong class='USER_NAME'>{{ message[4] }}</strong><br>
-          <span>{{ message[1] }}</span>
-        </span>
-      </div>
+  {% if rubrics %}
+    {% for r in rubrics %}
+      <div class="rubric col-8">
+        <form method="get" action="/rubric-{{ r[0] }}">
+          <input value='{{ r[1] }}' name='rubric_input' id='rubric_input' type='submit' readonly><br>
+        </form>
+          <span>{{ r[2] }}</span>
+        </div>
     {% end %}
   {% else %}
 
@@ -17,14 +17,32 @@
   {% end %}
 
   <style>
-    .message {
-      position: relative;
-      padding: 10px; /* Поля */
-      margin: 0 auto;
-      margin-bottom: 10px;
+    .rubric {
+      background: rgb(46, 46, 46);
       color: #fff;
-      width: 90%;
-      border: 1px solid rgb(0, 0, 0);
+      padding: 2px;
+      padding-left: 5px;
+      padding-bottom: 3px;
+    }
+    .rubric input {
+      font-size: 20px;
+      font-weight: 600;
+      color: #bbbdbb;
+      background: rgb(46, 46, 46);
+      border: none;
+      outline: none;
+    }
+    .rubric > span {
+      font-size: 14px;
+    }
+    .rubric_href {
+      text-decoration: none;
+      color: #bbbdbb;
+    }
+
+    .rubric_href:hover {
+      text-decoration: underline;
+      color: #bbbdbb;
     }
   </style>
 {% end %}

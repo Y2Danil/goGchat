@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1 class='rubric_name'>
+    {{ rubric[1] }}
+  </h1>
+  {% if messages %}
+    {% for message in messages %}
+      <div class='message'>
+        <span>
+          <strong class='USER_NAME'>{{ message[5] }}</strong><br>
+          <span>{{ message[1] }}</span>
+        </span>
+      </div>
+    {% end %}
+  {% else %}
+
+    <h1>Error 228</h1>
+
+  {% end %}
+  {% if current_user %}
+    <form class="form-group" method='post' action='/add-message-in-rubric-{{ rubric[0] }}' id='form_message'>
+      <input value='{{ rubric[1] }}' name='rubric_name' id='rubric_name' type="hidden" readonly>
+      <textarea id="message_textarea" class='' name="message_textarea" rows="3" placeholder="Ваше сообщение"></textarea>
+      <button class="btn btn-dark" type="submit">Отправить</button>
+    </form>
+  {% end %}
+
+  <style>
+    .rubric_name {
+      color: #fff;
+      text-shadow: 0 0 5px rgb(3, 82, 0) ;
+    }
+    .message {
+      background: rgb(10, 10, 10) !important;
+      position: relative;
+      padding: 10px; /* Поля */
+      margin: 0 auto;
+      margin-bottom: 10px;
+      color: #fff;
+      width: 90%;
+      border: 1px solid rgb(0, 0, 0);
+    }
+    #form_message {
+      margin-top: 25px;
+    }
+    #form_message #message_textarea {
+      background: rgb(10, 10, 10);
+      color: #ebebeb;
+      border: none;
+      width: 100%;
+      border-radius: 5px;
+      padding: 5px;
+    }
+    #form_message > #message_textarea:focus {
+      border: 1px solid rgb(3, 82, 0);
+      background: rgb(5, 5, 5);
+      outline: none !important;
+    }
+    #message_textarea::placeholder {
+      color: #a8a8a8e8;
+      font-weight: 600;
+    }
+    #message_textarea::-moz-placeholder {
+      color: #a8a8a8e8;
+      font-weight: 600;
+    }
+    .btn-dark {
+      color: #a8a8a8e8;
+      background: rgb(10, 10, 10);
+    } 
+    .btn-dark:hover {
+      color: #ebebeb;
+      background: rgb(0, 0, 0);
+      border: 1px solid rgb(3, 82, 0);
+    } 
+  </style>
+{% end %}
