@@ -1,17 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
+  {% import datetime %}
   <h1 class='rubric_name'>
     {{ rubric[1] }}
   </h1>
   {% if messages %}
     {% for message in messages %}
-      <div class='message'>
-        <span>
+    <div class='pod_messag'>
+      <span class="pub_date">{{ message[4].strftime("%d.%m.%Y %H:%M:%S") }}</span>
+      <div class='message col-12'>
+        <span class='row'>
           <strong class='USER_NAME'>{{ message[5] }}</strong><br>
-          <span>{{ message[1] }}</span>
+          <span class='message_text col-11'>{{ message[1] }}</span>
         </span>
       </div>
+    </div>
     {% end %}
   {% else %}
 
@@ -21,8 +25,8 @@
   {% if current_user %}
     <form class="form-group" method='post' action='/add-message-in-rubric-{{ rubric[0] }}' id='form_message'>
       <input value='{{ rubric[1] }}' name='rubric_name' id='rubric_name' type="hidden" readonly>
-      <textarea id="message_textarea" class='' name="message_textarea" rows="3" placeholder="Ваше сообщение"></textarea>
-      <button class="btn btn-dark" type="submit">Отправить</button>
+      <textarea id="message_textarea" class='' name="message_textarea" rows="5" placeholder="Ваше сообщение"></textarea>
+      <button class="btn btn-dark col-12" type="submit">Отправить</button>
     </form>
   {% end %}
 
@@ -31,15 +35,23 @@
       color: #fff;
       text-shadow: 0 0 5px rgb(3, 82, 0) ;
     }
+    .pod_messag .pub_date {
+      font-size: 14px;
+      font-weight: 300;
+      color: #444;
+    }
     .message {
       background: rgb(10, 10, 10) !important;
       position: relative;
       padding: 10px; /* Поля */
-      margin: 0 auto;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
       color: #fff;
-      width: 90%;
       border: 1px solid rgb(0, 0, 0);
+      border-radius: 4px;
+      min-height: 150px;
+    }
+    .message .message_text {
+      font-size: 20px;
     }
     #form_message {
       margin-top: 25px;
@@ -47,10 +59,10 @@
     #form_message #message_textarea {
       background: rgb(10, 10, 10);
       color: #ebebeb;
-      border: none;
       width: 100%;
       border-radius: 5px;
       padding: 5px;
+      border: 1px solid #2e2e30;
     }
     #form_message > #message_textarea:focus {
       border: 1px solid rgb(3, 82, 0);
@@ -68,11 +80,44 @@
     .btn-dark {
       color: #a8a8a8e8;
       background: rgb(10, 10, 10);
+      border: 1px solid #2e2e30;
     } 
     .btn-dark:hover {
       color: #ebebeb;
       background: rgb(0, 0, 0);
       border: 1px solid rgb(3, 82, 0);
-    } 
+    }
+    .smok {
+      background: #000;
+      background-blend-mode: overplay; 
+      padding: 0;
+      border: 0;
+    }
+    .smok:hover {
+      color: #fff; 
+      outline: 0;
+    }
+    .smok:focus {
+      color: #fff; 
+      outline: 0;
+    }
   </style>
+
+  <script>
+    function smok(){
+      let all_message = document.getElementsByClassName('message');
+      let all_text = document.querySelectorAll("span.message_text");
+      all_text.forEach(i => {
+        let j = i.innerHTML;
+        let m = j.toString();
+        
+        let re = /#!.+!#/g;
+        let re1 = /#!/g;
+        let re2 = /!#/g;
+        let a = m.replace(re1, `<button class='smok'>`);
+        let b = a.replace(re2, `</button>`);
+        i.innerHTML = b;
+        });
+  } smok();
+  </script>
 {% end %}

@@ -7,6 +7,7 @@
 </head>
 
 <body class='container-fluid'>
+    <link href="https://fonts.googleapis.com/css2?family=Play:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css" integrity="sha384-DhY6onE6f3zzKbjUPRc2hOzGAdEf4/Dz+WJwBvEYL/lkkIsI3ihufq9hk9K4lVoK" crossorigin="anonymous">
 
     <div class="row">
@@ -104,11 +105,15 @@
         </div>
     </div>
 
-    <main class="content col">
+    <main class="content col" id="main">
         {% block content %} 
         
         {% end %}
-    </main>
+    </main><br>
+
+    <div id="footer" class=''>
+        <span>Данный сайт не пытается кого-либо оскорбить или обидеть!</span>
+    </div>
     </div> 
 
     <!-- <div class='spam col-0 col-lg-3'>
@@ -122,6 +127,7 @@
             background: rgb(29, 29, 29);
             width: 100% !important;
             height: 100% !important;
+            padding: 0 !important;
         }
         .div-aside {
             position: absolute;
@@ -153,9 +159,10 @@
         .glob_aside_btn:hover {
             background: rgba(12, 12, 12, 0.3);
         }
-        main {
+        #main {
             position: relative;
             top: 50px;
+            padding: 0 5px;
         }
         .global-nav {
             position: absolute;
@@ -172,9 +179,16 @@
             position: relative;
             z-index: 999;
             top: 0;
+            padding-left: 10px;
             color: rgb(10, 119, 0) !important;
             font-weight: 600;
             font-size: 32px;
+        }
+        .div_in_glav_nav > ul > li {
+            padding-left: 10px !important;
+        }
+        .div_in_glav_nav > ul > li > * {
+            font-size: 16px;
         }
         /*.navbar-expand-lg {
             padding: 2px 5px;
@@ -253,7 +267,19 @@
             background-size: cover;
             height: 150px;
         }
-
+        #footer {
+            position: relative;
+            left: 0; bottom: 0;
+            top: 50px;
+            margin-top: 30px;
+            padding: 10px;
+            margin-top: 10px;
+            width: 100%;
+            background: rgb(10, 10, 10);
+        }
+        #footer span {
+            margin: 0 auto;
+        }
     </style>
     
     <script>
@@ -264,7 +290,6 @@
 
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/js/bootstrap.
     bundle.min.js" integrity="sha384-BOsAfwzjNJHrJ8cZidOg56tcQWfp6y72vEJ8xQ9w6Quywb24iOsW913URv1IS4GD" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 </body>
 
 </html>
