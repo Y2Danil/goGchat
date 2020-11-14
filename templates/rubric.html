@@ -1,7 +1,8 @@
-{% extends "base.html" %}
+{% extends "base_new.html" %}
 
 {% block content %}
   {% import datetime %}
+  {% from poSQL import poSQL %}
   <h1 class='rubric_name'>
     {{ rubric[1] }}
   </h1>
@@ -11,7 +12,16 @@
       <span class="pub_date">{{ message[4].strftime("%d.%m.%Y %H:%M:%S") }}</span>
       <div class='message col-12'>
         <span class='row'>
-          <strong class='USER_NAME'>{{ message[5] }}</strong><br>
+          {% if poSQL().select_user_po_name(escape(current_user))[0][-1] or poSQL().select_user_po_name(escape(current_user))[0][3] %}
+            <strong class='USER_NAME'>
+              <a href='/userAcc-{{message[5][1]}}'>
+                {{ message[5][1] }}
+              </a>
+            </strong>
+          {% else %}
+            <strong class='USER_NAME'>{{ message[5][1] }}</strong>
+          {% end %}
+          <br>
           <span class='message_text col-11'>{{ message[1] }}</span>
         </span>
       </div>
@@ -19,7 +29,7 @@
     {% end %}
   {% else %}
 
-    <h1>Error 228</h1>
+    <h1>Сообщений нет :(</h1>
 
   {% end %}
   {% if current_user %}
@@ -27,27 +37,39 @@
       <input value='{{ rubric[1] }}' name='rubric_name' id='rubric_name' type="hidden" readonly>
       <textarea id="message_textarea" class='' name="message_textarea" rows="5" placeholder="Ваше сообщение"></textarea>
       <button class="btn btn-dark col-12" type="submit">Отправить</button>
+      {% module xsrf_form_html() %}
     </form>
+  {% end %}
+
+  {% if len(messages) < 3 %}
+    <div style='height: 1000px '>
+      &nbsp;
+    </div>
+  {% elif 3 >= len(messages) < 6 %}
+    <div style='height: 500px'>
+      &nbsp;
+    </div>
   {% end %}
 
   <style>
     .rubric_name {
       color: #fff;
-      text-shadow: 0 0 5px rgb(3, 82, 0) ;
     }
     .pod_messag .pub_date {
       font-size: 14px;
       font-weight: 300;
       color: #444;
+      margin: 0 auto;
     }
     .message {
-      background: rgb(10, 10, 10) !important;
+      /*background: rgb(10, 10, 10) !important;*/
       position: relative;
       padding: 10px; /* Поля */
       margin-bottom: 20px;
       color: #fff;
-      border: 1px solid rgb(0, 0, 0);
-      border-radius: 4px;
+      border-top: 1px solid #fff;
+      border-bottom: 1px solid #fff;
+      /*border-radius: 4px;*/
       min-height: 150px;
     }
     .message .message_text {

@@ -47,7 +47,6 @@ class Rubric(Chat):
       rubric = po.select_rubric_only_title(rubric_name)[0]
     else:
       url = str(self.request.path)
-      print(url)
       rubric_id = re.search(r"rubric-[0-9]*", str(url), flags=0)
       rubric_id = re.search(r"c-[0-9]*", str(rubric_id))
       rubric_id = rubric_id.group(0)[2:]
@@ -56,9 +55,8 @@ class Rubric(Chat):
     for m in messages:
       index = messages.index(m)
       m = list(m)
-      user = po.select_user_po_id(int(m[2]))[0]
-      user_name = user[1]
-      m.append(user)
+      user_name = po.select_user_po_id(int(m[2]))[0][1]
+      m.append(user_name)
       messages[index] = m
     self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
     
@@ -78,32 +76,6 @@ class AddMessage(Rubric):
       self.redirect(f'/rubric-{rubric_id}')
     else:
       self.redirect('/')
-      
-class UserAcc(MainHandler):
-  def get(self):
-    url = self.request.path
-    print(url)
-    redic = url[9:]
-    print(redic)
-    user = po.select_user_po_name(self.current_user.decode())[0]
-    if user[-1] in [True, 1, 'true', 'True'] or user[3] in [True, 1, 'true', 'True']:
-      user_info = po.select_user_po_name(redic)[0]
-      print(user_info)
-      self.render('templates/moder_user.html', temp=self.temp, user_info=user_info)
-    else:
-      self.render('/')
-      
-class AddOP(MainHandler):
-  @tornado.gen.coroutine
-  def post(self):
-    redic = self.get_argument('url_in_user', '')
-    if self.current_user:
-      user = po.select_user_po_name(self.current_user.decode())[0]
-      if user[-1] in [True, 1, 'true', 'True'] or user[3] in [True, 1, 'true', 'True']:
-        userName = self.get_argument('addOP_username', '')
-        op = self.get_argument('OP', '')
-        po.add_op(userName, int(op))
-    self.redirect(redic)
     
 class ImportRegister(MainHandler):
   def get(self):
@@ -150,9 +122,7 @@ class Application(tornado.web.Application):
     handlers = [
     (r"/", Chat),
     (r"/rubric-\d*", Rubric),
-    (r'/add-message-in-rubric-\d\w\s*', AddMessage),
-    (r"/userAcc-.\d*\w*\s*", UserAcc),
-    (r'/addOP\d*\w*\s*', AddOP),
+    (r'/add-message-in-rubric-\d*', AddMessage),
     (r"/reg", ImportRegister),
     (r"/register", Register),
     (r"/log", ImportLogin),

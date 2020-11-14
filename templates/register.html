@@ -1,14 +1,112 @@
-{% extends "base.html" %}
+{% extends "base_new.html" %}
 <!---->
 {% block content %}
 
 <div class="register">
-    <strong class='display-3'>Регестрация</strong>
-    <form method="post" action="/register">
-        <input type="text" name='username' id='username_reg' class='col-mg-12 col-6'>
-        <input type="password" name='password1' id='password1' class='col-mg-12 col-6'>
-        <input type="password" name='password2' id='password2' class='col-mg-12 col-6'>
-        <button type="submit">Отправить</button> {% module xsrf_form_html() %}
+    <form method="post" action="/register" class='reg_form col-11 col-lg-8'>
+        <strong class='display-3' style='font-weight: 800;'>Регестрация</strong>
+        <div class='user_name' id='div_username'>
+            <span class=''>username&nbsp;&nbsp;</span>
+            <input type="text" name='username' id='username_reg'>
+        </div>
+        <div class='user_name' id='div_password1'>
+            <span class=''>password&nbsp;&nbsp;</span>
+            <input type="password" name='password1' id='password1'>
+        </div>
+        <div class='user_name' id='div_password2'>
+            <span class='' style='white-space: nowrap'>сonfig password&nbsp;&nbsp;</span>
+            <input type="password" name='password2' id='password2'>
+        </div>
+        <button type="submit" class='btn-reg'>Отправить</button> {% module xsrf_form_html() %}
     </form>
 </div>
+<div style='height: 1000px'>
+    &nbsp;
+</div>
+
+<style>
+    .register {
+        font-weight: 800;
+        color: #fff;
+    }
+    .reg_form {
+        margin: 0 auto;
+    }
+    .reg_form * {
+        margin: 5px 0;
+    }
+    .reg_form div {
+        display: flex;
+        padding-left: 5px;
+        background: rgb(15, 15, 15);
+        border: 1px solid rgb(46, 46, 46);
+    }
+    .reg_form input {
+        background: rgb(15, 15, 15);
+        border: none;
+        font-family: 'Play', sans-serif;
+        font-weight: 400;
+        color: #006905;
+        width: 100%;
+    }
+    .reg_form input:focus {
+        outline: none;
+    }
+    .reg_form span {
+        font-family: 'Play', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        color: #888;
+    }
+    .btn-reg {
+        background: rgb(10, 10, 10);
+        border: 1px solid rgb(46, 46, 46);
+        color: #888;
+        transition: .2s;
+        font-family: 'Play', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        padding: 5px;
+    }
+    .btn-reg:hover {
+        border: 1px solid rgb(3, 82, 0);
+        color: rgb(3, 82, 0);
+    }
+</style>
+
+<script>
+    username_reg.onclick = function() {
+        el_user = document.getElementById('div_username');
+        el_pass1 = document.getElementById('div_password1');
+        el_pass2 = document.getElementById('div_password2');
+        el_user.style.cssText=` border: 1px solid rgb(3, 82, 0);
+        `;
+        el_pass1.style.cssText=` border: 1px solid rgb(46, 46, 46);
+        `;
+        el_pass2.style.cssText=` border: 1px solid rgb(46, 46, 46);
+        `;
+    }
+    password1.onclick = function() {
+        el_user = document.getElementById('div_username');
+        el_pass1 = document.getElementById('div_password1');
+        el_pass2 = document.getElementById('div_password2');
+        el_user.style.cssText=` border: 1px solid rgb(46, 46, 46);
+        `;
+        el_pass1.style.cssText=` border: 1px solid rgb(3, 82, 0);
+        `;
+        el_pass2.style.cssText=` border: 1px solid rgb(46, 46, 46);
+        `;
+    }
+    password2.onclick = function() {
+        el_user = document.getElementById('div_username');
+        el_pass1 = document.getElementById('div_password1');
+        el_pass2 = document.getElementById('div_password2');
+        el_user.style.cssText=` border: 1px solid rgb(46, 46, 46);
+        `;
+        el_pass1.style.cssText=` border: 1px solid rgb(46, 46, 46);
+        `;
+        el_pass2.style.cssText=` border: 1px solid rgb(3, 82, 0);
+        `;
+    }
+    </script>
 {% end %}

@@ -1,0 +1,40 @@
+{% extends "base_new.html" %}
+
+{% block content %}
+  {% if poSQL().select_user_po_name(escape(current_user))[0][-1] == True or poSQL().select_user_po_name(escape(current_user))[0][3] == True %}
+    <div class="modale col-12">
+      <form method="post" action="/addOP?next={{request.path}}" class='user_form' id='userInfo'>
+        <strong>Пользователь:
+          <span class='username'>{{ user_info[1] }}</span>
+        </strong><br>
+        <strong>Опыт:
+          <span class='add_op' v-if='0 < col_op && col_op < 6 && col_op != 0'>{{ user_info[-2] }}+[[ col_op ]]</span>
+          <span class='add_op' v-else-if='0 > col_op && col_op != 0'>{{ user_info[-2] }}[[ col_op ]]</span>
+          <span class='add_op' v-else>{{ user_info[-2] }}</span>
+        </strong>
+        <div class='add_op'>
+          <input type="number" name='OP' id='OP' v-model="col_op">
+          <input type="hidden" value="{{ user_info[1] }}" name='addOP_username' id='addOP_username'>
+          <input type="hidden" value="{{ request.path }}" name='url_in_user' id='url_in_user'>
+          <button type="submit">Добавить</button>
+          {% module xsrf_form_html() %}
+        </form>
+      </form>
+    </div>
+  {% else %}
+    <strong>error404</strong>
+  {% end %}
+
+  <style>
+    .username {
+      color: red;
+    }
+    .add_op {
+      color: yellowgreen;
+    }
+    .user_form > strong {
+      color: #dfdfdf;
+    }
+  </style>
+
+{% end %}

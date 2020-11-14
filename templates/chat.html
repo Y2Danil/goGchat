@@ -1,11 +1,12 @@
-{% extends "base.html" %}
+{% extends "base_new.html" %}
 
 {% block content %}
   {% if rubrics %}
     {% for r in rubrics %}
       <div class="rubric col-8">
         <form method="get" action="/rubric-{{ r[0] }}">
-          <input value='{{ r[1] }}' name='rubric_input' id='rubric_input' type='submit' readonly><br>
+          <input value='{{ r[1] }}' name='rubric_input' id='rubric_input' type="submit" readonly><br>
+          {% module xsrf_form_html() %}
         </form>
           <span>{{ r[2] }}</span>
         </div>
@@ -18,31 +19,20 @@
 
   <style>
     .rubric {
-      background: rgb(46, 46, 46);
-      color: #fff;
-      padding: 2px;
+      border-top: 1px solid #fff;
+      border-bottom: 1px solid #fff;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+    }
+    .rubric span {
       padding-left: 5px;
-      padding-bottom: 3px;
     }
-    .rubric input {
-      font-size: 20px;
-      font-weight: 600;
-      color: #bbbdbb;
-      background: rgb(46, 46, 46);
+    .rubric form > input {
       border: none;
-      outline: none;
-    }
-    .rubric > span {
-      font-size: 14px;
-    }
-    .rubric_href {
-      text-decoration: none;
-      color: #bbbdbb;
-    }
-
-    .rubric_href:hover {
-      text-decoration: underline;
-      color: #bbbdbb;
+      background: #00000000;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 600;
     }
   </style>
 {% end %}
