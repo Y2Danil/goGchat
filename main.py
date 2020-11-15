@@ -150,7 +150,7 @@ class Application(tornado.web.Application):
     handlers = [
     (r"/", Chat),
     (r"/rubric-\d*", Rubric),
-    (r'/add-message-in-rubric-\d\w\s*', AddMessage),
+    (r'/add-message-in-rubric-\d*\w*\s*', AddMessage),
     (r"/userAcc-.\d*\w*\s*", UserAcc),
     (r'/addOP\d*\w*\s*', AddOP),
     (r"/reg", ImportRegister),
