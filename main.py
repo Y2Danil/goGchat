@@ -75,7 +75,19 @@ class Rubric(Chat):
         else:
           self.redirect('/')
       else:
-        self.redirect('/')
+        messages = po.select_rubric_messages(rubric_id)
+        for m in messages:
+          index = messages.index(m)
+          m = list(m)
+          user = po.select_user_po_id(int(m[2]))[0]
+          user_id = user[0]
+          user_name = user[1]
+          m.append(user)
+          user_ava = user[6]
+          user_ava = self.static_url(f'avatar/{user_ava}')
+          m.append(user_ava)
+          messages[index] = m
+        self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
     else:
       messages = po.select_rubric_messages(rubric_id)
       for m in messages:
@@ -353,8 +365,8 @@ class Application(tornado.web.Application):
 
 if __name__ == "__main__":
   app = Application()
-  port = int(os.environ.get("PORT", 5000))
-  app.listen(port)
-  # app.listen(8888)
+  #port = int(os.environ.get("PORT", 5000))
+  #app.listen(port)
+  app.listen(8888)
   #fff
   tornado.ioloop.IOLoop.current().start()
