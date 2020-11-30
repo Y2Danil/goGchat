@@ -7,32 +7,60 @@
     {{ rubric[1] }}
   </h1>
   {% if messages %}
-    {% for message in messages %}
-    <div class='pod_messag'>
-      <span class="pub_date">{{ message[4].strftime("%d.%m.%Y %H:%M:%S") }}</span>
-      <div class='message col-12'>
-        <span class='row'>
-          {% if poSQL().select_user_po_name(escape(current_user))[0][-1] or poSQL().select_user_po_name(escape(current_user))[0][3] %}
-            <strong class='USER_NAME'>
-              <a href='/userAcc-{{message[5][1]}}'>
-                {{ message[5][1] }}
-              </a>
-            </strong>
-          {% else %}
-            <strong class='USER_NAME'>{{ message[5][1] }}</strong>
-          {% end %}
-          <br>
-          <span class='message_text col-11'>{{ message[1] }}</span>
-        </span>
+    {% for m in messages %}
+      <div class='message'>
+        <div class='msg_content'>
+          <spanc class='pub_date'>{{ m[4].strftime("%d.%m.%y %H:%M") }}</span>
+          <div class='user_info' style='display: flex;'>
+            <img class="img-fluid" style='width: 50px; height: 50px;' src="{{ m[6] }}">
+            <div>
+              {% if current_user %}
+                {% if m[5][3] or m[5][5] %}
+                  {% if m[5][3] %}
+                    <string class='user_name'>
+                      <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none;' class='admin'>{{m[5][1]}}</a>
+                    </string>
+                  {% else %}
+                  <string class='user_name'>
+                    <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none;' class='moder'>{{m[5][1]}}</a>
+                  </string>
+                  {% end %}
+                {% else %}
+                  <string class='user_name'>{{m[5][1]}}</string>
+                {% end %}
+              {% else %}
+                {% if m[5][3] or m[5][5] %}     
+                  {% if m[5][3] %}
+                    <string class='user_name'>
+                      <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none;' class='admin'>{{m[5][1]}}</a>
+                    </string>
+                  {% else %}
+                  <string class='user_name'>
+                    <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none;' class='moder'>{{m[5][1]}}</a>
+                  </string>
+                  {% end %}
+                {% end %}
+              {% end %}
+                <br>
+                <span class='OP'>Опыт:
+                  {% if m[5][4] >= 0 %}
+                    <span class='col_op_plus'>{{m[5][4]}}</span>
+                  {% else %}
+                    <span class='col_op_minus'>{{m[5][4]}}</span>
+                  {% end %}
+                </span>
+            </div>
+          </div>
+          <p class='msg_text' v-on:click='BlackWhite'>{{ m[1] }}</p>
+        </div>
       </div>
-    </div>
     {% end %}
   {% else %}
 
     <h1>Сообщений нет :(</h1>
 
   {% end %}
-  {% if current_user %}
+  {% if current_user and rubric[5] != True %}
     <form class="form-group" method='post' action='/add-message-in-rubric-{{ rubric[0] }}' id='form_message'>
       <input value='{{ rubric[1] }}' name='rubric_name' id='rubric_name' type="hidden" readonly>
       <textarea id="message_textarea" class='' name="message_textarea" rows="5" placeholder="Ваше сообщение"></textarea>
@@ -53,27 +81,38 @@
 
   <style>
     .rubric_name {
-      color: #fff;
-    }
-    .pod_messag .pub_date {
-      font-size: 14px;
-      font-weight: 300;
-      color: #444;
-      margin: 0 auto;
+      color: #ddd;
     }
     .message {
-      /*background: rgb(10, 10, 10) !important;*/
-      position: relative;
-      padding: 10px; /* Поля */
       margin-bottom: 20px;
-      color: #fff;
-      border-top: 1px solid #fff;
-      border-bottom: 1px solid #fff;
-      /*border-radius: 4px;*/
       min-height: 150px;
+      border-top: 1px solid #333;
+      border-bottom: 1px solid #333;
     }
-    .message .message_text {
-      font-size: 20px;
+    .pub_date {
+      font-size: .8em;
+    }
+    .msg_content {
+      padding-left: 10px;
+    }
+    .user_name {
+      color: #cfcfcf;
+      font-weight: 900;
+      font-size: 1.1em;
+    }
+    .msg_text {
+      color: #fff;
+      font-size: 1.2em;
+    }
+    .OP {
+      font-size: 1.1em;
+      color: #ddd;
+    }
+    .col_op_plus {
+      color: green;
+    }
+    .col_op_minus {
+      color: red;
     }
     #form_message {
       margin-top: 25px;
@@ -123,12 +162,95 @@
       color: #fff; 
       outline: 0;
     }
+
+    .moder {
+      animation: moder 10s infinite;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% 100%;
+      background-position: 100%;
+    }
+
+    .admin {
+      animation: admin 10s infinite;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% 100%;
+      background-position: 100%;
+    }
+
+    @keyframes moder {
+      10% {
+        background: linear-gradient(to right, rgb(204, 0, 255), rgb(197, 0, 247), 40%, rgb(156, 0, 247));
+      }
+      20% {
+        background: linear-gradient(to right, rgb(195, 0, 243), rgb(206, 8, 255), 40%, rgb(162, 0, 255));
+      }
+      30% {
+        background: linear-gradient(to right, rgb(191, 7, 236), rgb(201, 6, 250), 40%, rgb(158, 5, 247));
+      }
+      40% {
+        background: linear-gradient(to right, rgb(195, 0, 243), rgb(206, 8, 255), 40%, rgb(162, 0, 255));
+      }
+      50% {
+        background: linear-gradient(to right, rgb(214, 0, 255), rgb(197, 0, 247), 40%, rgb(166, 0, 247));
+      }
+      60% {
+        background: linear-gradient(to right, rgb(223, 0, 243), rgb(206, 8, 255), 40%, rgb(168, 0, 255));
+      }
+      70% {
+        background: linear-gradient(to right, rgb(191, 7, 236), rgb(201, 6, 250), 40%, rgb(158, 5, 247));
+      }
+      80% {
+        background: linear-gradient(to right, rgb(195, 0, 243), rgb(206, 8, 255), 40%, rgb(162, 0, 255));
+      }
+      90% {
+        background: linear-gradient(to right, rgb(205, 6, 255), rgb(218, 0, 247), 40%, rgb(162, 0, 255));
+      }
+      100% {
+        background: linear-gradient(to right, rgb(204, 0, 255), rgb(197, 0, 247), 40%, rgb(156, 0, 247));
+      }
+    }
+    @keyframes admin {
+      10% {
+        background: linear-gradient(to right, rgb(255, 217, 4), rgb(255, 196, 4), 40%, rgb(255, 237, 4));
+      }
+      20% {
+        background: linear-gradient(to right, rgb(255, 207, 4), rgb(255, 237, 4), 43%, rgb(255, 226, 11));
+      }
+      30% {
+        background: linear-gradient(to right, rgb(255, 197, 4), rgb(255, 207, 4), 47%, rgb(255, 207, 4));
+      }
+      40% {
+        background: linear-gradient(to right, rgb(255, 188, 4), rgb(255, 217, 4), 50%, rgb(255, 227, 4));
+      }
+      50% {
+        background: linear-gradient(to right, rgb(255, 227, 4), rgb(255, 237, 4), 47%, rgb(255, 247, 4));
+      }
+      60% {
+        background: linear-gradient(to right, rgb(255, 217, 4), rgb(255, 227, 4), 50%, rgb(255, 237, 4));
+      }
+      70% {
+        background: linear-gradient(to right, rgb(255, 197, 19), rgb(255, 217, 4), 53%, rgb(255, 227, 4));
+      }
+      80% {
+        background: linear-gradient(to right, rgb(255, 198, 9), rgb(255, 207, 4), 50%, rgb(255, 217, 4));
+      }
+      90% {
+        background: linear-gradient(to right, rgb(255, 207, 4), rgb(243, 207, 6), 47%, rgb(255, 227, 4));
+      }
+      100% {
+        background: linear-gradient(to right, rgb(255, 227, 4), rgb(255, 237, 4), 43%, rgb(255, 247, 4));
+      }
+    }
   </style>
 
   <script>
     function smok(){
       let all_message = document.getElementsByClassName('message');
-      let all_text = document.querySelectorAll("span.message_text");
+      let all_text = document.querySelectorAll("p.msg_text");
       all_text.forEach(i => {
         let j = i.innerHTML;
         let m = j.toString();

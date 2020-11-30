@@ -1,26 +1,44 @@
 {% extends "base_new.html" %}
 
 {% block content %}
-  {% if poSQL().select_user_po_name(escape(current_user))[0][-1] == True or poSQL().select_user_po_name(escape(current_user))[0][3] == True %}
+  {% if (poSQL().select_user_po_name(escape(current_user))[0][5] == True or poSQL().select_user_po_name(escape(current_user))[0][3] == True) and current_user != user_info[1] %}
+  <div id='userInfo'>
     <div class="modale col-12">
-      <form method="post" action="/addOP?next={{request.path}}" class='user_form' id='userInfo'>
+        {% if user_info[6] %}
+          <div class='img_user'>
+            <img class='ava_img' src="{{ava}}" width='25%'>
+            {% if youIsUser %}
+              <form enctype="multipart/form-data" method='post' action='/add_ava'>
+                <input type="hidden" name="user" value='{{user_info[1]}}'>
+                <input type="hidden" name="url" value='{{request.path}}'>
+                <input type="file" name='add_ava'>
+                <button type="submit">Отправить</button>
+              </form>
+            {% end %}
+          </div>
+        {% end %}
         <strong>Пользователь:
           <span class='username'>{{ user_info[1] }}</span>
         </strong><br>
         <strong>Опыт:
-          <span class='add_op' v-if='0 < col_op && col_op < 6 && col_op != 0'>{{ user_info[-2] }}+[[ col_op ]]</span>
-          <span class='add_op' v-else-if='0 > col_op && col_op != 0'>{{ user_info[-2] }}[[ col_op ]]</span>
-          <span class='add_op' v-else>{{ user_info[-2] }}</span>
+          <span class='add_op' v-if='0 < col_op && col_op < 6 && col_op != 0'>{{ user_info[4] }}<span style='color: rgb(0, 145, 19)'>+[[ col_op ]]</span></span>
+          <span class='add_op' v-else-if='0 > col_op && col_op != 0'>{{ user_info[4] }}<span style='color: rgb(253, 0, 0)'>[[ col_op ]]</span></span>
+          <span class='add_op' v-else>{{ user_info[4] }}</span>
         </strong>
-        <div class='add_op'>
+      <div class='add_op'>
+        <form method="post" action="/addOP?next={{request.path}}" class='user_form'>
+          <span>Max OP - 5</span><br>
           <input type="number" name='OP' id='OP' v-model="col_op">
           <input type="hidden" value="{{ user_info[1] }}" name='addOP_username' id='addOP_username'>
           <input type="hidden" value="{{ request.path }}" name='url_in_user' id='url_in_user'>
           <button type="submit">Добавить</button>
           {% module xsrf_form_html() %}
         </form>
-      </form>
-    </div>
+      </div>
+  </div>
+  </div>
+  {% elif current_user == user_info[1] %}
+    <h1>fff</h1>
   {% else %}
     <strong>error404</strong>
   {% end %}
@@ -32,7 +50,7 @@
     .add_op {
       color: yellowgreen;
     }
-    .user_form > strong {
+    .user_form  strong {
       color: #dfdfdf;
     }
   </style>

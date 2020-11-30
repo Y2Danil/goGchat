@@ -30,7 +30,8 @@ new Vue({
   delimiters: ["[[", "]]"],
   data: {
     col_op: null,
-    op: false
+    op: false,
+    ava_url: 'avatar/default_ava.jpg'
   },
   methods: {
     OP: function(){
@@ -43,3 +44,25 @@ new Vue({
     }
   }
 });
+
+new Vue({
+  el: '#addRubric',
+  delimiters: ["[[", "]]"],
+  data: {
+    min_op: null,
+    only_read: false
+  },
+  methods: {
+    CkeckBox: function(){
+      this.only_read = !this.only_read;
+    }
+  }
+});
+
+// new Vue({
+//   el: '.pod_messag',
+//   delimiters: ["[[", "]]"],
+//   data: {
+//     col_op: null
+//   }
+// });

@@ -34,9 +34,19 @@
               <li class="nav-item">
                   <a class="nav-link" href="/log">Вход</a>
               </li>
+              {% if current_user != True %}
+              <li class="nav-item">
+                <a class="nav-link" href="/logout">Выход</a>
+              </li>
+              {% end %}
               <li class="nav-item">
                   <a class="nav-link" href="/reg">Регестрация</a>
               </li>
+              {% if current_user %}
+              <li class="nav-item">
+                <a class="nav-link" href="/addRubric">Создать тему</a>
+              </li>
+              {% end %}
               {% if temp %}
                   <!--li class="nav-item">
                       <div class="dropdown open">
@@ -209,6 +219,15 @@
           background-repeat: no-repeat;
           background-size: cover;
           height: 200px;
+      }
+
+      @media (max-width: 992px) {
+        #navbar > ul > li {
+          padding-left: 15px;
+        }
+        .aside {
+          padding: 0 15px;
+        }
       }
 
       @media (min-width: 992px) {
