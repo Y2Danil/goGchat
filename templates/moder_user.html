@@ -1,5 +1,9 @@
 {% extends "base_new.html" %}
 
+{% block title %}
+  Акк пользователя - {{ user_info[1] }}
+{% end %}
+
 {% block content %}
   {% if (poSQL().select_user_po_name(escape(current_user))[0][5] == True or poSQL().select_user_po_name(escape(current_user))[0][3] == True) and current_user != user_info[1] %}
   <div id='userInfo'>

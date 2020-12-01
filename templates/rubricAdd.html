@@ -1,5 +1,9 @@
 {% extends "base_new.html" %}
 
+{% block title %}
+  Добавить тему
+{% end %}
+
 {% block content %}
   {% if current_user %}
     <form method="post" action="/addRubric" id='addRubric' class='col-10'>

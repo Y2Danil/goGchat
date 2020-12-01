@@ -1,5 +1,9 @@
 {% extends "base_new.html" %}
 
+{% block title %}
+  Тема - {{ rubric[1] }} 
+{% end %}
+
 {% block content %}
   {% import datetime %}
   {% from poSQL import poSQL %}

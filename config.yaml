@@ -1,0 +1,9 @@
+postgres:
+  database: db85a48j30fvr
+  user: fldyqnxcgmlctw
+  password: d86ddbb94a3059ab90cea9bb58432f1e4150a85bfbd440cd1fa8b9ecd45a8618
+  host: ec2-54-76-215-139.eu-west-1.compute.amazonaws.com
+  port: 5432
+project:
+  cookie_secret: 2332ddyffdy89sd69ds6666y6668
+  owm: cdf62a12d0f07be59ff578db64f3d8a2

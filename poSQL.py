@@ -3,6 +3,7 @@ import datetime
 from datetime import datetime, date, time, timedelta, timezone
 import calendar
 import psycopg2
+import yaml
 # import numba
 # from numba import int16, int32
 
@@ -12,13 +13,16 @@ import psycopg2
 
 class poSQL:
   def __init__(self):
-    #self.DATABASE_URL = os.environ['DATABASE_URL']
-    #self.con = psycopg2.connect(DATABASE_URL, sslmode='require')
-    self.con = psycopg2.connect(dbname='d48m04bohdscjt',
-                                user='sdhjmwjlisovxf', 
-                                password='75577485b50664f0cba60bc31547470761803b7f7da7d21995817401eba29767', 
-                                host='ec2-54-228-250-82.eu-west-1.compute.amazonaws.com')
-    self.cur = self.con.cursor()
+    with open('config.yaml') as f:
+      config = yaml.safe_load(f)
+      db_config = config['postgres']
+        
+      self.con = psycopg2.connect(dbname=db_config['database'],
+                                user=db_config['user'], 
+                                password=db_config['password'], 
+                                host=db_config['host'],
+                                port=db_config['port'])
+      self.cur = self.con.cursor()
     
   def select_users(self):
     with self.con:

@@ -2,13 +2,8 @@ import tornado.ioloop
 import tornado.web
 import tornado
 import tornado.httpserver
+import yaml
 
-# import base64
-# import cgi
-# import jinja2
-# import typing
-
-#import json
 import re
 import os
 
@@ -325,6 +320,10 @@ class Logout(MainHandler):
     
 class Application(tornado.web.Application):
   def __init__(self):
+    f = open('config.yaml')
+    config = yaml.safe_load(f)
+    projectConfig = config['project']
+    
     handlers = [
       (r"/", Chat),
       (r"/rubric-\w+", Rubric),
@@ -339,33 +338,19 @@ class Application(tornado.web.Application):
       (r"/login", Login),
       (r"/logout", Logout),
     ]
-
-    # jinja2_env = jinja2.Environment(loader=jinja2.FileSystemLoader('template/'), autoescape=False)
-    # jinja2_loader = Jinja2Loader(jinja2_env)
     
     settings = dict(
-      cookie_secret="2332ddyffdy89sd69ds6666y6668",
+      cookie_secret=projectConfig['cookie_secret'],
       static_path = os.path.join(os.path.dirname(__file__), "static"),
       templates_path = os.path.join(os.path.dirname(__file__), "templates"),
       # template_loader=jinja2_loader,
       #xsrf_cookies=True,
     )
     super(Application, self).__init__(handlers, **settings)
-  
-    
-"""def make_app():
-  return tornado.web.Application([
-    (r"/", Chat),
-    (r"/reg", ImportRegister),
-    (r"/register", Register),
-    (r"/log", ImportLogin),
-    (r"/login", Login),
-    (r"/logout", Logout),
-  ], cookie_secret="2332ddyffdy89sd69ds6666y6668")"""
 
 if __name__ == "__main__":
   app = Application()
-  port = int(os.environ.get("PORT", 5000))
-  app.listen(port)
-  #app.listen(8888)
+  #port = int(os.environ.get("PORT", 5000))
+  #app.listen(port)
+  app.listen(8888)
   tornado.ioloop.IOLoop.current().start()

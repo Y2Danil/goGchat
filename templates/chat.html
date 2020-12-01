@@ -1,5 +1,9 @@
 {% extends "base_new.html" %}
 
+{% block title %}
+  gavnoChat - Главнео
+{% end %}
+
 {% block content %}
   <h1 class='display-4' style='margin-left: 15px; color: #ccc; font-weight: 600;'>Темы</h1>
   {% if fixing_rubrics %}
@@ -36,16 +40,17 @@
         border-bottom: 1px solid #fff;
         padding-bottom: 5px;
         margin-bottom: 10px;
-        margin-left: 15px;
+        margin-left: 10px;
       }
       .rubric span {
         padding-left: 5px;
+        font-size: .95em;
       }
       .rubric form > input {
         border: none;
         background: #00000000;
         color: #fff;
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 600;
       }
     }
