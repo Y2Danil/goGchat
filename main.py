@@ -4,8 +4,9 @@ import tornado
 import tornado.httpserver
 import yaml
 
-import re
 import os
+import re
+import typing
 
 import owm
 from poSQL import *
@@ -339,7 +340,7 @@ class Application(tornado.web.Application):
       (r"/logout", Logout),
     ]
     
-    settings = dict(
+    settings: typing.Dict = dict(
       cookie_secret=projectConfig['cookie_secret'],
       static_path = os.path.join(os.path.dirname(__file__), "static"),
       templates_path = os.path.join(os.path.dirname(__file__), "templates"),
@@ -349,7 +350,7 @@ class Application(tornado.web.Application):
 
 if __name__ == "__main__":
   app = Application()
-  #port = int(os.environ.get("PORT", 5000))
-  #app.listen(port)
-  app.listen(8888)
+  port = int(os.environ.get("PORT", 5000))
+  app.listen(port)
+  #app.listen(8888)
   tornado.ioloop.IOLoop.current().start()
