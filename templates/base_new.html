@@ -147,11 +147,6 @@
       .aside {
         background-color: black;
       } 
-      .navbar-brand {
-        font-size: 42px;
-        font-weight: 600;
-        margin-left: 10px;
-      }
       div.norm {
           font-weight: 600;
           background-image: url("static/images/norm.jpg");
@@ -220,6 +215,20 @@
           background-repeat: no-repeat;
           background-size: cover;
           height: 200px;
+      }
+      @media (max-width: 768px) {
+        .navbar-brand {
+          font-size: 36px;
+          font-weight: 600;
+          margin-left: 10px;
+        }
+      }
+      @media (min-width: 768px) {
+        .navbar-brand {
+          font-size: 42px;
+          font-weight: 600;
+          margin-left: 10px;
+        }
       }
       @media (max-width: 992px) {
         #navbar > ul > li {
