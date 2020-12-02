@@ -9,10 +9,9 @@
   {% if fixing_rubrics %}
     {% for fr in fixing_rubrics %}
       <div class="rubric col-sm-11 col-md-11 col-lg-8 col-xl-8">
-        <form method="post" action="/rubric-{{ fr[0] }}">
-          <input value='{{ fr[1] }}' name='rubric_input' id='rubric_input' type="submit" readonly>
-          {% module xsrf_form_html() %}
-        </form>
+          <h1>
+            <a href="/rubric-{{ fr[0] }}">{{ fr[1] }}</a>
+          </h1>
         <span>{{ fr[2] }}</span>&nbsp;<span style='font-size: .9em; font-weight: 100; color: #d303039c; margin: auto 0;'>закреплено</span>
       </div>
     {% end %}
@@ -20,12 +19,11 @@
   {% if rubrics %}
     {% for r in rubrics %}
       <div class="rubric col-sm-11 col-md-11 col-lg-8 col-xl-8">
-        <form method="post" action="/rubric-{{ r[0] }}">
-          <input value='{{ r[1] }}' name='rubric_input' id='rubric_input' type="submit" readonly><br>
-          {% module xsrf_form_html() %}
-        </form>
-          <span>{{ r[2] }}</span>
-        </div>
+        <h1>
+          <a href="/rubric-{{ fr[0] }}">{{ r[1] }}</a>
+        </h1>
+        <span>{{ r[2] }}</span>
+      </div>
     {% end %}
   {% else %}
 
@@ -34,6 +32,14 @@
   {% end %}
 
   <style>
+    .rubric > h1 {
+      padding-bottom: 0 !important;
+    }
+    .rubric > h1 > a {
+      text-decoration: none;
+      font-weight: 600;
+      margin-left: 5px;
+    }
     @media (min-width: 992px) {
       .rubric {
         border-top: 1px solid #fff;
@@ -46,9 +52,9 @@
         padding-left: 5px;
         font-size: .95em;
       }
-      .rubric form > input {
+      .rubric > h1 > a {
         border: none;
-        background: #00000000;
+        background: #000000;
         color: #fff;
         font-size: 22px;
         font-weight: 600;
@@ -66,11 +72,11 @@
         padding-left: 5px;
         font-size: 1em;
       }
-      .rubric form > input {
+      .rubric > h1 > a {
         border: none;
         background: #00000000;
         color: #fff;
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 600;
       }
     }

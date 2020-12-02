@@ -343,14 +343,13 @@ class Application(tornado.web.Application):
       cookie_secret=projectConfig['cookie_secret'],
       static_path = os.path.join(os.path.dirname(__file__), "static"),
       templates_path = os.path.join(os.path.dirname(__file__), "templates"),
-      # template_loader=jinja2_loader,
-      #xsrf_cookies=True,
+      xsrf_cookies=True,
     )
     super(Application, self).__init__(handlers, **settings)
 
 if __name__ == "__main__":
   app = Application()
-  port = int(os.environ.get("PORT", 5000))
-  app.listen(port)
-  #app.listen(8888)
+  #port = int(os.environ.get("PORT", 5000))
+  #app.listen(port)
+  app.listen(8888)
   tornado.ioloop.IOLoop.current().start()

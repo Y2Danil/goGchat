@@ -117,11 +117,11 @@
         </div>
           </nav>
         </div>
-          <div class="col-lg-9 content-container">
+          <main class="col-lg-9 content-container">
             <!-- Основной контент страницы  -->
             {% block content %}
             {% end %}
-          </div>
+          </main>
         </div>
       </div>
     </div>
@@ -221,12 +221,12 @@
           background-size: cover;
           height: 200px;
       }
-      @media screen and (max-width: 992px) {
+      @media (max-width: 992px) {
         #navbar > ul > li {
-          padding-left: 15px;
+          padding-left: 10px;
         }
         .aside {
-          padding: 0 15px;
+          padding: 0 10px;
         }
       }
 
