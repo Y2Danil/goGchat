@@ -350,7 +350,7 @@ class Application(tornado.web.Application):
 
 if __name__ == "__main__":
   app = Application()
-  port = int(os.environ.get("PORT", 5000))
-  app.listen(port)
-  #app.listen(8888)
+  #port = int(os.environ.get("PORT", 5000))
+  #app.listen(port)
+  app.listen(8888)
   tornado.ioloop.IOLoop.current().start()

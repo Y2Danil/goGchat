@@ -20,7 +20,7 @@
     {% for r in rubrics %}
       <div class="rubric col-sm-11 col-md-11 col-lg-8 col-xl-8">
         <h1>
-          <a href="/rubric-{{ fr[0] }}">{{ r[1] }}</a>
+          <a href="/rubric-{{ r[0] }}">{{ r[1] }}</a>
         </h1>
         <span>{{ r[2] }}</span>
       </div>
@@ -34,6 +34,9 @@
   <style>
     .rubric > h1 {
       padding-bottom: 0 !important;
+      font-size: 22px;
+      margin-top: 10px;
+      margin-bottom: 5px;
     }
     .rubric > h1 > a {
       text-decoration: none;
