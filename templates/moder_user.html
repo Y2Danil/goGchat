@@ -39,15 +39,50 @@
           {% module xsrf_form_html() %}
         </form>
       </div>
-  </div>
+    </div>
   </div>
   {% elif current_user == user_info[1] %}
-    <h1>fff</h1>
+  <div id='userInfo'>
+    <div class="modale col-12">
+      {% if user_info[6] %}
+      <div class='img_user'>
+        <img class='ava_img' src="{{ava}}" width='25%'>
+      </div>
+      {% end %}
+      <strong>Пользователь:
+          <span class='username'>{{ user_info[1] }}</span>
+      </strong><br>
+      <div class="settings">
+          {% if youIsUser %}
+            <div class='NewAva'>
+              <form enctype="multipart/form-data" method='post' action='/add_ava'>
+                <strogn class='newAva_strong'>Установить новую аву</strong>
+                <input type="hidden" name="user" value='{{user_info[1]}}'>
+                <input type="hidden" name="url" value='{{request.path}}'>
+                <input type="file" name='add_ava' id='add_ava'>
+                <div class='label_add_ava'>
+                  <label for="add_ava" class='col-12'>Новая ава</label>
+                </div>
+                <button type="submit">Отправить</button>
+                {% module xsrf_form_html() %}
+              </form>
+            </div>
+            {% end %}
+      </div>
+    </div>
+  </div>
   {% else %}
     <strong>error404</strong>
   {% end %}
 
   <style>
+    main {
+      margin: 0 5px;
+    }
+    .newAva_strong {
+      color: #fff;
+      font-size: 22px;
+    }
     .username {
       color: red;
     }
@@ -56,6 +91,29 @@
     }
     .user_form  strong {
       color: #dfdfdf;
+    }
+    input[name='add_ava'] {
+      width: 0.1px;
+      height: 0.1px;
+      opacity: 0;
+    }
+    div.label_add_ava {
+      border-radius: 5px;
+      border: 1px solid #222;
+      background: #111;
+      color: #ccc;
+      margin-bottom: 10px;
+      transition: .2s;
+      width: 130px;
+      text-align: center;
+    }
+    label.label_add_ava {
+      height: 100%;
+      text-align: center;
+      padding: 0 10px;
+    }
+    .label_add_ava:hover {
+      box-shadow: 0 0 1px 2px greenyellow;
     }
   </style>
 

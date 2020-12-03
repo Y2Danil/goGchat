@@ -10,6 +10,7 @@ import typing
 
 import owm
 from poSQL import *
+import adminka as adm
 #from dop_data import Data
 
 po = poSQL()
@@ -259,16 +260,13 @@ class AddAva(UserAcc):
     try:
       newAva = self.request.files['add_ava'][0];
       redic = self.get_argument('url', '');
-      print('--', newAva);
       original_fname = newAva['filename'];
-      print(original_fname);
       redic = self.get_argument('url', '');
       user = self.get_argument('user', '');
       user = self.current_user;
       user_info = po.select_user_po_name(user.decode())[0];
       f = open('static/avatar/{0}'.format(user_info[6]), 'wb');
       f.write(newAva['body']);
-      self.finish("file " + original_fname + " is uploaded");
       po.update_ava(self.current_user.decode(), user_info[6]);
       f.close();
       self.redirect(redic)
@@ -338,6 +336,7 @@ class Application(tornado.web.Application):
       (r"/log", ImportLogin),
       (r"/login", Login),
       (r"/logout", Logout),
+      (r"/admin", adm.MainAdmin),
     ]
     
     settings: typing.Dict = dict(
@@ -350,7 +349,7 @@ class Application(tornado.web.Application):
 
 if __name__ == "__main__":
   app = Application()
-  port = int(os.environ.get("PORT", 5000))
-  app.listen(port)
-  #app.listen(8888)
+  #port = int(os.environ.get("PORT", 5000))
+  #app.listen(port)
+  app.listen(8888)
   tornado.ioloop.IOLoop.current().start()
