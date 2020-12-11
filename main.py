@@ -11,8 +11,10 @@ import typing
 import owm
 from poSQL import *
 import adminka as adm
+#from hesirka import Heshirka
 #from dop_data import Data
 
+he = Heshirka()
 po = poSQL()
 we = owm.Weather()
 #dd = Data()
@@ -66,6 +68,8 @@ class Rubric(Chat):
             m.append(user)
             user_ava = user[6]
             user_ava = self.static_url(f'avatar/{user_ava}')
+            #decode_msg = b'%b' % m[1]
+            #m[1] = decode_msg
             m.append(user_ava)
             messages[index] = m
           self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
@@ -82,6 +86,8 @@ class Rubric(Chat):
           m.append(user)
           user_ava = user[6]
           user_ava = self.static_url(f'avatar/{user_ava}')
+          #decode_msg = b'%b' % m[1]
+          #m[1] = decode_msg
           m.append(user_ava)
           messages[index] = m
         self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
@@ -96,6 +102,8 @@ class Rubric(Chat):
         m.append(user)
         user_ava = user[6]
         user_ava = self.static_url(f'avatar/{user_ava}')
+        #decode_msg = b'%b' % m[1]
+        #m[1] = decode_msg
         m.append(user_ava)
         messages[index] = m
       self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
@@ -134,6 +142,8 @@ class Rubric(Chat):
             user_ava = user[6]
             user_ava = self.static_url(f'avatar/{user_ava}')
             m.append(user_ava)
+            #decode_msg = b'%b' % m[1]
+            #m[1] = decode_msg
             messages[index] = m
           self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
         else:
@@ -151,7 +161,11 @@ class Rubric(Chat):
         m.append(user)
         user_ava = user[6]
         user_ava = self.static_url(f'avatar/{user_ava}')
+        print(m[1])
         m.append(user_ava)
+        print('--', m[1])
+        #decode_msg = b'%b' % m[1]
+        #m[1] = decode_msg
         messages[index] = m
       self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
     
@@ -207,6 +221,8 @@ class AddMessage(Rubric):
       print(self.current_user.decode())
       user = po.select_user_po_name(self.current_user.decode())
       print(user)
+      #message_text = he.shifr(message_text.encode('utf-8'), b'abcdefgh')
+      #print(message_text)
       po.add_message(message_text, rubric_id, user[0][0])
       print(f'/rubric-{rubric_id}')
       self.redirect(f'/rubric-{rubric_id}')
@@ -286,12 +302,12 @@ class Register(MainHandler):
     if password1 == password2:
       po.add_user(username, password1);
       self.redirect('/log');
-      user_info = po.select_user_po_name(username);
-      with open(f'static/avatar/ava_{username}_id={user_info[0][6]}.jpg', 'wb') as f:
+      user_info = po.select_user_po_name(username)[0];
+      with open(f'static/avatar/ava_{username}_id={user_info[0]}.jpg', 'wb') as f:
         with open('static/avatar/default_ava.jpg', 'rb') as f2:
           ava = f2.read();
           f.write(ava);
-          po.update_ava(f'static/avatar/ava_{username}_id={user_info[0][0]}.jpg', username);
+          po.update_ava(f'static/avatar/ava_{username}_id={user_info[0]}.jpg', username);
     else:
       self.write('<strong>Error(((</strong>')
     
@@ -349,7 +365,7 @@ class Application(tornado.web.Application):
 
 if __name__ == "__main__":
   app = Application()
-  port = int(os.environ.get("PORT", 5000))
-  app.listen(port)
-  #app.listen(8888)
+  #port = int(os.environ.get("PORT", 5000))
+  #app.listen(port)
+  app.listen(8888)
   tornado.ioloop.IOLoop.current().start()
