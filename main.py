@@ -107,7 +107,10 @@ class Rubric(Chat):
           m.append(user)
           user_ava = user[6]
           user_ava = self.static_url(f'avatar/{user_ava}')
-          m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+          try:
+              m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+          except UnicodeDecodeError:
+            pass
           m.append(user_ava)
           messages[index] = m
         self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
@@ -122,7 +125,10 @@ class Rubric(Chat):
         m.append(user)
         user_ava = user[6]
         user_ava = self.static_url(f'avatar/{user_ava}')
-        m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+        try:
+          m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+        except UnicodeDecodeError:
+          pass
         m.append(user_ava)
         messages[index] = m
       self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
