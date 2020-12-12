@@ -3,10 +3,16 @@ import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES, PKCS1_OAEP, DES
 from Crypto.Random import get_random_bytes
+from numba import njit, jit, int32
+from numba import jitclass
+
+#spec = [('run', int32)]
  
+#@jitclass(spec)
 class Heshirka:
-  def __init__(self):
-    super().__init__()
+  def __init__(self, run):
+    self.run = run
+    #super().__init__()
     
   def pad(self, text):
     while len(text) % 8 != 0:
@@ -28,23 +34,22 @@ class Heshirka:
     pass
     
   def shifr(self, text: bytes, key: bytes):
+    if type(text) != bytes:
+      text = text.encode('utf-8')
+    else:
+      pass
     des = DES.new(key, DES.MODE_ECB)
-    text_dehash = text
-    padded_text = self.pad(text_dehash)
+    padded_text = self.pad(text)
     encrypted_text = des.encrypt(padded_text)
-    data = des.decrypt(encrypted_text)
+    
+    return encrypted_text
+  
+  def deshifr(self, data: bytes, key: bytes):
+    des = DES.new(key, DES.MODE_ECB)
+    data = des.decrypt(data)
     
     return data
       
   def hesh_lite(self, str):
     res = hashlib.sha256(str.encode('utf-8'))
     return res.hexdigest()
-  
-  
-if __name__ == "__main__":
-  he = Heshirka()
-  key = he.gener_key('nooneknows')
-  #print(key)
-  t = b"Hello!!!"
-  msg = he.shifr(t, key)
-  print(msg)

@@ -1,4 +1,5 @@
 import tornado.ioloop
+import tornado.wsgi
 import tornado.web
 import tornado
 import tornado.httpserver
@@ -11,10 +12,10 @@ import typing
 import owm
 from poSQL import *
 import adminka as adm
-#from hesirka import Heshirka
+from hesirka import Heshirka
 #from dop_data import Data
 
-he = Heshirka()
+he = Heshirka(0)
 po = poSQL()
 we = owm.Weather()
 #dd = Data()
@@ -26,13 +27,26 @@ class MainHandler(tornado.web.RequestHandler):
   temp = we.temp_in_PK()
     
   def get(self):
+    print('a')
     if self.current_user:
       self.current_user = self.current_user
     else:
       self.current_user = None
-  
+      
+    if not self.get_secure_cookie('key'):
+      self.set_secure_cookie('key', None)
+      print('a')
+      self.key = None
+    else:
+      self.set_secure_cookie('key', self.key)
+      self.key = self.get_secure_cookie('key')
+      
   def get_current_user(self):
     return self.get_secure_cookie("user")
+  
+  def key(self):
+    print(self.get_secure_cookie("key"))
+    return self.get_secure_cookie("key")
     
 class Chat(MainHandler):
   async def get(self):
@@ -54,6 +68,11 @@ class Rubric(Chat):
     rubric_id = re.search(r"c-[0-9]*", str(rubric_id))
     rubric_id = rubric_id.group(0)[2:]
     rubric = po.select_rubric_only_id(rubric_id)[0]
+    #self.key = None
+    if self.key():
+      key = self.key()
+    else:
+      key = None
     if rubric[4] != -10:
       if self.current_user:
         user_info = po.select_user_po_name(self.current_user.decode())[0]
@@ -68,11 +87,13 @@ class Rubric(Chat):
             m.append(user)
             user_ava = user[6]
             user_ava = self.static_url(f'avatar/{user_ava}')
-            #decode_msg = b'%b' % m[1]
-            #m[1] = decode_msg
+            try:
+              m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+            except UnicodeDecodeError:
+              pass
             m.append(user_ava)
             messages[index] = m
-          self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
+          self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
         else:
           self.redirect('/')
       else:
@@ -86,11 +107,10 @@ class Rubric(Chat):
           m.append(user)
           user_ava = user[6]
           user_ava = self.static_url(f'avatar/{user_ava}')
-          #decode_msg = b'%b' % m[1]
-          #m[1] = decode_msg
+          m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
           m.append(user_ava)
           messages[index] = m
-        self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
+        self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
     else:
       messages = po.select_rubric_messages(rubric_id)
       for m in messages:
@@ -102,72 +122,71 @@ class Rubric(Chat):
         m.append(user)
         user_ava = user[6]
         user_ava = self.static_url(f'avatar/{user_ava}')
-        #decode_msg = b'%b' % m[1]
-        #m[1] = decode_msg
+        m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
         m.append(user_ava)
         messages[index] = m
-      self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
+      self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
           
-  @tornado.gen.coroutine
-  def post(self):
-    if self.get_argument("rubric_name", ''):
-      rubric_name = self.get_argument("rubric_name", '')
-      rubric = po.select_rubric_only_title(rubric_name)[0]
-      rubric_id = rubric[0]
-      rubric = po.select_rubric_only_title(rubric_name)[0]
-    elif self.get_argument("rubric_input", ''):
-      rubric_name = self.get_argument("rubric_input", '')
-      rubric = po.select_rubric_only_title(rubric_name)[0]
-      rubric_id = rubric[0]
-      rubric = po.select_rubric_only_title(rubric_name)[0]
-    else:
-      url = str(self.request.path)
-      print(url)
-      rubric_id = re.search(r"rubric-[0-9]*", str(url), flags=0)
-      rubric_id = re.search(r"c-[0-9]*", str(rubric_id))
-      rubric_id = rubric_id.group(0)[2:]
-      rubric = po.select_rubric_only_id(rubric_id)[0]
-    if rubric[4] != -10:
-      if self.current_user:
-        user_info = po.select_user_po_name(self.current_user.decode())[0]
-        if rubric[4] <= user_info[4]:
-          messages = po.select_rubric_messages(rubric_id)
-          for m in messages:
-            index = messages.index(m)
-            m = list(m)
-            user = po.select_user_po_id(int(m[2]))[0]
-            user_id = user[0]
-            user_name = user[1]
-            m.append(user)
-            user_ava = user[6]
-            user_ava = self.static_url(f'avatar/{user_ava}')
-            m.append(user_ava)
-            #decode_msg = b'%b' % m[1]
-            #m[1] = decode_msg
-            messages[index] = m
-          self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
-        else:
-          self.redirect('/')
-      else:
-        self.redirect('/')
-    else:
-      messages = po.select_rubric_messages(rubric_id)
-      for m in messages:
-        index = messages.index(m)
-        m = list(m)
-        user = po.select_user_po_id(int(m[2]))[0]
-        user_id = user[0]
-        user_name = user[1]
-        m.append(user)
-        user_ava = user[6]
-        user_ava = self.static_url(f'avatar/{user_ava}')
-        print(m[1])
-        m.append(user_ava)
-        print('--', m[1])
-        #decode_msg = b'%b' % m[1]
-        #m[1] = decode_msg
-        messages[index] = m
-      self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
+  # @tornado.gen.coroutine
+  # def post(self):
+  #   if self.get_argument("rubric_name", ''):
+  #     rubric_name = self.get_argument("rubric_name", '')
+  #     rubric = po.select_rubric_only_title(rubric_name)[0]
+  #     rubric_id = rubric[0]
+  #     rubric = po.select_rubric_only_title(rubric_name)[0]
+  #   elif self.get_argument("rubric_input", ''):
+  #     rubric_name = self.get_argument("rubric_input", '')
+  #     rubric = po.select_rubric_only_title(rubric_name)[0]
+  #     rubric_id = rubric[0]
+  #     rubric = po.select_rubric_only_title(rubric_name)[0]
+  #   else:
+  #     url = str(self.request.path)
+  #     print(url)
+  #     rubric_id = re.search(r"rubric-[0-9]*", str(url), flags=0)
+  #     rubric_id = re.search(r"c-[0-9]*", str(rubric_id))
+  #     rubric_id = rubric_id.group(0)[2:]
+  #     rubric = po.select_rubric_only_id(rubric_id)[0]
+  #   if rubric[4] != -10:
+  #     if self.current_user:
+  #       user_info = po.select_user_po_name(self.current_user.decode())[0]
+  #       if rubric[4] <= user_info[4]:
+  #         messages = po.select_rubric_messages(rubric_id)
+  #         for m in messages:
+  #           index = messages.index(m)
+  #           m = list(m)
+  #           user = po.select_user_po_id(int(m[2]))[0]
+  #           user_id = user[0]
+  #           user_name = user[1]
+  #           m.append(user)
+  #           user_ava = user[6]
+  #           user_ava = self.static_url(f'avatar/{user_ava}')
+  #           m.append(user_ava)
+  #           #decode_msg = b'%b' % m[1]
+  #           #m[1] = decode_msg
+  #           messages[index] = m
+  #         self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
+  #       else:
+  #         self.redirect('/')
+  #     else:
+  #       self.redirect('/')
+  #   else:
+  #     messages = po.select_rubric_messages(rubric_id)
+  #     for m in messages:
+  #       index = messages.index(m)
+  #       m = list(m)
+  #       user = po.select_user_po_id(int(m[2]))[0]
+  #       user_id = user[0]
+  #       user_name = user[1]
+  #       m.append(user)
+  #       user_ava = user[6]
+  #       user_ava = self.static_url(f'avatar/{user_ava}')
+  #       print(m[1])
+  #       m.append(user_ava)
+  #       print('--', m[1])
+  #       #decode_msg = b'%b' % m[1]
+  #       #m[1] = decode_msg
+  #       messages[index] = m
+  #     self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp)
     
 class AddRubric(MainHandler):
   async def get(self):
@@ -210,6 +229,18 @@ class AddRubric(MainHandler):
     else:
       self.redirect('/log')
     
+class KeyRubric(MainHandler):
+  @tornado.gen.coroutine
+  def post(self):
+    if self.current_user:
+      key = self.get_argument('key', '');
+      redic: str = self.get_argument('redic', '');
+      self.set_secure_cookie('key', key);
+      self.key = self.get_secure_cookie('key');
+      print(self.key);
+    
+    self.redirect(redic);
+  
 class AddMessage(Rubric):
   @tornado.gen.coroutine
   def post(self):
@@ -221,8 +252,8 @@ class AddMessage(Rubric):
       print(self.current_user.decode())
       user = po.select_user_po_name(self.current_user.decode())
       print(user)
-      #message_text = he.shifr(message_text.encode('utf-8'), b'abcdefgh')
-      #print(message_text)
+      message_text = he.shifr(message_text, self.key())
+      print(message_text)
       po.add_message(message_text, rubric_id, user[0][0])
       print(f'/rubric-{rubric_id}')
       self.redirect(f'/rubric-{rubric_id}')
@@ -342,6 +373,7 @@ class Application(tornado.web.Application):
     handlers = [
       (r"/", Chat),
       (r"/rubric-\w+", Rubric),
+      (r'/post-key', KeyRubric),
       (r'/addRubric', AddRubric),
       (r'/add-message-in-rubric-\w*\d*\s*', AddMessage),
       (r"/userAcc-.\d*\w*\s*", UserAcc),
@@ -365,7 +397,7 @@ class Application(tornado.web.Application):
 
 if __name__ == "__main__":
   app = Application()
-  #port = int(os.environ.get("PORT", 5000))
-  #app.listen(port)
-  app.listen(8888)
+  port = int(os.environ.get("PORT", 5000))
+  app.listen(port)
+  #app.listen(8888)
   tornado.ioloop.IOLoop.current().start()

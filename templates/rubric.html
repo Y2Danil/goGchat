@@ -10,6 +10,13 @@
   <h1 class='rubric_name'>
     {{ rubric[1] }}
   </h1>
+  <form method="post" action="/post-key" class='keyOpen'>
+    {% module xsrf_form_html() %}
+    <input name="key" id="key" placeholder="ключ">
+    <input type="hidden" name="redic" value='{{ request.path }}'>
+    <button type="submit">Отправить</button>
+  </form>
+
   {% if messages %}
     {% for m in messages %}
       <div class='message'>
@@ -87,6 +94,28 @@
     .rubric_name {
       color: #ddd;
       margin-left: 5px;
+    }
+    .keyOpen {
+      margin-bottom: 10px;
+      padding: 5px 10px;
+    }
+    .keyOpen input[name='key'] {
+      color: rgb(127, 170, 42);
+      background-color: rgb(10, 10, 10);
+      border: 2px solid #2e2e30;
+      transition: .2s;
+      border-radius: 3px;
+      padding: 2px;
+    }
+    .keyOpen input[name='key']:focus {
+      color: yellowgreen;
+      outline: none;
+      border: 2px solid green;
+    }
+    .keyOpen button {
+      color: #a8a8a8e8;
+      background: rgb(10, 10, 10);
+      border: 1px solid #2e2e30;
     }
     .message {
       margin-bottom: 20px;
