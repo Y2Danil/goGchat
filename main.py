@@ -238,9 +238,9 @@ class AddRubric(MainHandler):
 class KeyRubric(MainHandler):
   @tornado.gen.coroutine
   def post(self):
+    key = self.get_argument('key', '');
+    redic: str = self.get_argument('redic', '');
     if self.current_user:
-      key = self.get_argument('key', '');
-      redic: str = self.get_argument('redic', '');
       if len(key) != 8:
         key = b'keyIdiot'
       else:
@@ -249,7 +249,9 @@ class KeyRubric(MainHandler):
       self.key = self.get_secure_cookie('key');
       print(self.key);
     
-    self.redirect(redic);
+      self.redirect(redic);
+    else:
+      self.redirect(redic);
   
 class AddMessage(Rubric):
   @tornado.gen.coroutine
@@ -407,7 +409,7 @@ class Application(tornado.web.Application):
 
 if __name__ == "__main__":
   app = Application()
-  #port = int(os.environ.get("PORT", 5000))
-  #app.listen(port)
-  app.listen(8888)
+  port = int(os.environ.get("PORT", 5000))
+  app.listen(port)
+  #app.listen(8888)
   tornado.ioloop.IOLoop.current().start()
