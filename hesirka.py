@@ -3,8 +3,6 @@ import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES, PKCS1_OAEP, DES
 from Crypto.Random import get_random_bytes
-from numba import njit, jit, int32
-from numba import jitclass
 
 #spec = [('run', int32)]
  

@@ -3,3 +3,5 @@ psycopg2==2.8.5
 psycopg2-binary==2.8.5
 pyowm==3.0.0
 PyYAML==5.3.1
+pycryptodome==3.9.9
+pycryptodomex==3.9.9
