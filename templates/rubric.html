@@ -10,7 +10,7 @@
   <h1 class='rubric_name'>
     {{ rubric[1] }}
   </h1>
-  <form method="post" action="/post-key" class='keyOpen'>
+  <form method="post" action="/post-key" class='keyOpen' id='keyOpen'>
     {% module xsrf_form_html() %}
     <input name="key" id="key" placeholder="ключ">
     <input type="hidden" name="redic" value='{{ request.path }}'>

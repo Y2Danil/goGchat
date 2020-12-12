@@ -60,6 +60,22 @@ new Vue({
 });
 
 // new Vue({
+//   el: '#keyOpen',
+//   data: {
+//     key: null
+//   },
+//   methods: {
+//     CheckKey: function(){
+//       if(this.key.length != 8){
+//         this.key = 'keyidiot'
+//       }else{
+//         // pass
+//       }
+//     }
+//   }
+// })
+
+// new Vue({
 //   el: '.pod_messag',
 //   delimiters: ["[[", "]]"],
 //   data: {

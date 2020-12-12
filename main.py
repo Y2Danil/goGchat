@@ -241,6 +241,10 @@ class KeyRubric(MainHandler):
     if self.current_user:
       key = self.get_argument('key', '');
       redic: str = self.get_argument('redic', '');
+      if len(key) != 8:
+        key = b'keyIdiot'
+      else:
+        pass
       self.set_secure_cookie('key', key);
       self.key = self.get_secure_cookie('key');
       print(self.key);
@@ -403,7 +407,7 @@ class Application(tornado.web.Application):
 
 if __name__ == "__main__":
   app = Application()
-  port = int(os.environ.get("PORT", 5000))
-  app.listen(port)
-  #app.listen(8888)
+  #port = int(os.environ.get("PORT", 5000))
+  #app.listen(port)
+  app.listen(8888)
   tornado.ioloop.IOLoop.current().start()
