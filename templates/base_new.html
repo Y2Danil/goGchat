@@ -45,73 +45,8 @@
               </li>
               {% if current_user %}
               <li class="nav-item">
-                <a class="nav-link" href="/addRubric">Создать тему</a>
+                <a class="nav-link" href="/addTheme">Создать тему</a>
               </li>
-              {% end %}
-              {% if temp %}
-                  <!--li class="nav-item">
-                      <div class="dropdown open">
-                          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          Погода
-                          </button>
-                          
-                              {% if  0 <= temp < 5 %}
-                              <div class="dropdown-menu norm" aria-labelledby="dropdownMenuButton">
-                                  <strong class='norm'>
-                                      Температура в П-К: {{ temp }}С°
-                                  </strong>
-                              </div>
-                              {% elif 5 <= temp < 15 %}
-                              <div class="dropdown-menu lite_had" aria-labelledby="dropdownMenuButton">
-                                  <strong class='lite_had'>
-                                      Температура в П-К: {{ temp }}С°
-                                  </strong>
-                              </div>
-                              {% elif 15 <= temp < 25 %}
-                              <div class="dropdown-menu had" aria-labelledby="dropdownMenuButton">
-                                  <strong class='had'>
-                                      Температура в П-К: {{ temp }}С°
-                                  </strong>
-                              </div>
-                              {% elif 25 <= temp %}
-                              <div class="dropdown-menu very_had" aria-labelledby="dropdownMenuButton">
-                                  <strong class='very_had'>
-                                      Температура в П-К: {{ temp }}С°
-                                  </strong>
-                              </div>
-                              {% elif 0 > temp > -7 %}
-                              <div class="dropdown-menu lite_cold" aria-labelledby="dropdownMenuButton">
-                                  <strong class='lite_cold'>
-                                      Температура в П-К: {{ temp }}С°
-                                  </strong>
-                                  <img src='' width='100%'>
-                                  
-                              </div>
-                              {% elif -7 >= temp > -15 %}
-                              <div class="dropdown-menu cold" aria-labelledby="dropdownMenuButton">
-                                  <strong class='cold'>
-                                      Температура в П-К: {{ temp }}С°
-                                  </strong>
-                              </div>
-                              {% elif -15 >= temp > -25 %}
-                              <div class="dropdown-menu very_cold" aria-labelledby="dropdownMenuButton">
-                                  <strong class='very_cold'>
-                                      Температура в П-К: {{ temp }}С°
-                                  </strong>
-                              </div>
-                              {% elif -25 >= temp %}
-                              <div class="dropdown-menu hard_cold" aria-labelledby="dropdownMenuButton">
-                                  <strong class='hard_cold'>
-                                      Температура в П-К: {{ temp }}С°
-                                  </strong>
-                              </div>
-                              {% else %}
-                              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                  <strong>Нет данных :(</strong>        
-                              </div>
-                              {% end %}
-                          </div>
-                  </li-->
               {% end %}
           </ul>
         </div>

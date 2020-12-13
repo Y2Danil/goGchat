@@ -49,17 +49,54 @@ class MainHandler(tornado.web.RequestHandler):
     return self.get_secure_cookie("key")
     
 class Chat(MainHandler):
-  async def get(self):
+  # async def get(self):
+  #   if self.current_user:
+    #   user = self.current_user.decode()
+    #   user_info = po.select_user_po_name(user)[0]
+    #   print(user_info)
+    #   rubrics = po.select_themes_plus_op_theme(user_info[4])[::-1]
+    #   fixing_rubrics = po.select_fixing_themes(user_info[4])[::-1]
+    # else:
+    #   rubrics = po.select_themes_plus_op_theme(0)[::-1]
+    #   fixing_rubrics = po.select_fixing_themes(0)[::-1]
+    # self.render('templates/chat.html', temp=self.temp, rubrics=rubrics, fixing_rubrics=fixing_rubrics)
+    
+  @tornado.gen.coroutine
+  def get(self):
     if self.current_user:
       user = self.current_user.decode()
       user_info = po.select_user_po_name(user)[0]
       print(user_info)
-      rubrics = po.select_rubrics_plus_op_rubric(user_info[4])[::-1]
-      fixing_rubrics = po.select_fixing_rubrics(user_info[4])[::-1]
+      types = po.select_types()
+      rubrics = []
+      self.render('templates/chat.html', temp=self.temp, types=types, user_info=user_info)
+      # for type in types:
+      #   rubric = po.select_themes_plus_op_theme(user_info[4], type[0])
+      #   rubrics
+      # rubrics = po.select_themes_plus_op_theme(user_info[4])[::-1]
+      # fixing_rubrics = po.select_fixing_themes(user_info[4], 1)[::-1]
     else:
-      rubrics = po.select_rubrics_plus_op_rubric(0)[::-1]
-      fixing_rubrics = po.select_fixing_rubrics(0)[::-1]
-    self.render('templates/chat.html', temp=self.temp, rubrics=rubrics, fixing_rubrics=fixing_rubrics)
+      types = po.select_types()
+      # rubrics = po.select_themes_plus_op_theme(0)[::-1]
+      # fixing_rubrics = po.select_fixing_themes(0)[::-1]
+      self.render('templates/chat.html', temp=self.temp, types=types)
+    
+class Type(Chat):
+  @tornado.gen.coroutine
+  def get(self):
+    url = self.request.path;
+    type_id = url[6:];
+    if self.current_user:
+      user_info = po.select_user_po_name(self.current_user.decode('utf-8'))[0];
+      type = po.select_type_po_id(int(type_id), user_info[4])[0]
+      themes = po.select_themes_po_type(int(type_id), user_info[4])
+      
+      self.render('templates/type.html', type=type, themes=themes)
+    else:
+      type = po.select_type_po_id(int(type_id), 0)[0]
+      themes = po.select_themes_po_type(int(type_id), 0)
+      
+      self.render('templates/type.html', type=type, themes=themes)
     
 class Rubric(Chat):
   async def get(self):
@@ -67,7 +104,7 @@ class Rubric(Chat):
     rubric_id = re.search(r"rubric-[0-9]*", str(url), flags=0)
     rubric_id = re.search(r"c-[0-9]*", str(rubric_id))
     rubric_id = rubric_id.group(0)[2:]
-    rubric = po.select_rubric_only_id(rubric_id)[0]
+    rubric = po.select_theme_only_id(rubric_id)[0]
     #self.key = None
     if self.key():
       key = self.key()
@@ -77,7 +114,7 @@ class Rubric(Chat):
       if self.current_user:
         user_info = po.select_user_po_name(self.current_user.decode())[0]
         if rubric[4] <= user_info[4]:
-          messages = po.select_rubric_messages(rubric_id)
+          messages = po.select_theme_messages(rubric_id)
           for m in messages:
             index = messages.index(m)
             m = list(m)
@@ -97,7 +134,7 @@ class Rubric(Chat):
         else:
           self.redirect('/')
       else:
-        messages = po.select_rubric_messages(rubric_id)
+        messages = po.select_theme_messages(rubric_id)
         for m in messages:
           index = messages.index(m)
           m = list(m)
@@ -115,7 +152,7 @@ class Rubric(Chat):
           messages[index] = m
         self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
     else:
-      messages = po.select_rubric_messages(rubric_id)
+      messages = po.select_theme_messages(rubric_id)
       for m in messages:
         index = messages.index(m)
         m = list(m)
@@ -198,10 +235,11 @@ class AddRubric(MainHandler):
   async def get(self):
     if self.current_user:
       user_info = po.select_user_po_name(self.current_user.decode())[0];
-      print(user_info)
-      self.render('templates/rubricAdd.html', temp=self.temp, user_info=user_info);
+      print(user_info);
+      types = po.select_types_op(user_info[4]);
+      self.render('templates/rubricAdd.html', temp=self.temp, user_info=user_info, types=types);
     else:
-      self.redirect('/')
+      self.redirect('/');
   
   @tornado.gen.coroutine
   def post(self):
@@ -209,7 +247,14 @@ class AddRubric(MainHandler):
       rubric_name: str = self.get_argument("rubric_name", '')
       mini_dop: str = self.get_argument("mini_dop", '')
       min_op: int = int(self.get_argument("min_op", ''))
-      only_read = self.get_argument("only_read")
+      type_theme: int = self.get_argument('type_theme', '');
+      only_read = self.get_argument("only_read", '');
+      themes = po.select_themes()
+      for t in themes:
+        if t[1] == rubric_name:
+          self.redirect('/addTheme')
+          return False
+      
       if only_read == 'true':
         only_read: bool = True
         post: str = self.get_argument('text_in_only_read', '')
@@ -218,19 +263,19 @@ class AddRubric(MainHandler):
         user_id = user_info[0]
         print(only_read)
         print(user_info)
-        po.add_rubric(rubric_name, mini_dop, min_op, only_read, user_id)
-        rubric = po.select_rubrics()[-1]
+        po.add_theme(rubric_name, mini_dop, min_op, only_read, user_id)
+        rubric = po.select_themes()[-1]
         rubric_id: int = rubric[0]
         po.add_message(post, rubric_id, user_id)
         self.redirect('/')
       else:
         only_read: bool = False
         user = self.current_user.decode()
-        user_info = po.select_user_po_id(user)[0]
+        user_info = po.select_user_po_name(user)[0]
         user_id = user_info[0]
         print(only_read)
         print(user_info)
-        po.add_rubric(rubric_name, mini_dop, min_op, only_read, user_id)
+        po.add_theme(rubric_name, mini_dop, min_op, only_read, user_id, type_theme)
         self.redirect('/')
     else:
       self.redirect('/log')
@@ -258,7 +303,7 @@ class AddMessage(Rubric):
   def post(self):
     if self.current_user:
       rubric_name = self.get_argument("rubric_name", '')
-      rubric = po.select_rubric_only_title(rubric_name)[0]
+      rubric = po.select_themes_only_title(rubric_name)[0]
       rubric_id = rubric[0]
       message_text = self.get_argument("message_textarea", '')
       print(self.current_user.decode())
@@ -384,9 +429,10 @@ class Application(tornado.web.Application):
     
     handlers = [
       (r"/", Chat),
+      (r"/type-\w+", Type),
       (r"/rubric-\w+", Rubric),
       (r'/post-key', KeyRubric),
-      (r'/addRubric', AddRubric),
+      (r'/addTheme', AddRubric),
       (r'/add-message-in-rubric-\w*\d*\s*', AddMessage),
       (r"/userAcc-.\d*\w*\s*", UserAcc),
       (r'/addOP\d*\w*\s*', AddOP),
@@ -409,7 +455,7 @@ class Application(tornado.web.Application):
 
 if __name__ == "__main__":
   app = Application()
-  port = int(os.environ.get("PORT", 5000))
-  app.listen(port)
-  #app.listen(8888)
+  # port = int(os.environ.get("PORT", 5000))
+  # app.listen(port)
+  app.listen(8888)
   tornado.ioloop.IOLoop.current().start()

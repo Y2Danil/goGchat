@@ -71,46 +71,70 @@ class poSQL:
   def add_message(self, text, rubric_id, user_id):
     with self.con:
       return self.cur.execute("""INSERT INTO "Message"(text, pub_date, rubric_id, user_id) VALUES (%s, %s, %s, %s);""", (text, datetime.today(), rubric_id, user_id))
+    
+  def select_types(self):
+    with self.con:
+      self.cur.execute("""SELECT * FROM "Type";""")
+      result = self.cur.fetchall()
+      return result
+    
+  def select_types_op(self, op):
+    with self.con:
+      self.cur.execute("""SELECT * FROM "Type" WHERE min_op<=%s;""", (op,))
+      result = self.cur.fetchall()
+      return result
+    
+  def select_type_po_id(self, id, op):
+    with self.con:
+      self.cur.execute("""SELECT * FROM "Type" WHERE id=%s AND min_op<=%s;""", (id, op))
+      result = self.cur.fetchall()
+      return result
+    
+  def select_themes_po_type(self, type_id, op):
+    with self.con:
+      self.cur.execute("""SELECT * FROM "Theme" WHERE type_id=%s AND min_op<=%s;""", (type_id, op))
+      result = self.cur.fetchall()
+      return result
   
-  def select_rubric_messages(self, rubric_id):
+  def select_theme_messages(self, rubric_id):
     with self.con:
       self.cur.execute("""SELECT * FROM "Message" WHERE rubric_id=%s;""", (rubric_id,))
       result = self.cur.fetchall()
       return result
     
-  def select_fixing_rubrics(self, op):
+  def select_fixing_themes(self, op, type_id):
     with self.con:
-      self.cur.execute("""SELECT * FROM "Rubric" WHERE min_op<=%s and fixing=true;""", (op,))
+      self.cur.execute("""SELECT * FROM "Theme" WHERE min_op<=%s AND fixing=true AND type_id=%s;""", (op, type_id))
       result = self.cur.fetchall()
       return result
   
-  def select_rubric_only_id(self, id):
+  def select_theme_only_id(self, id):
     with self.con:
-      self.cur.execute("""SELECT * FROM "Rubric" WHERE id=%s;""", (id,))
+      self.cur.execute("""SELECT * FROM "Theme" WHERE id=%s;""", (id,))
       result = self.cur.fetchall()
       return result
   
-  def select_rubric_only_title(self, rubric_title):
+  def select_themes_only_title(self, rubric_title):
     with self.con:
-      self.cur.execute("""SELECT * FROM "Rubric" WHERE title=%s;""", (rubric_title,))
+      self.cur.execute("""SELECT * FROM "Theme" WHERE title=%s;""", (rubric_title,))
       result = self.cur.fetchall()
       return result
   
-  def select_rubrics(self):
+  def select_themes(self):
     with self.con:
-      self.cur.execute("""SELECT * FROM "Rubric";""")
+      self.cur.execute("""SELECT * FROM "Theme";""")
       result = self.cur.fetchall()
       return result
     
-  def select_rubrics_plus_op_rubric(self, op):
+  def select_themes_plus_op_theme(self, op, type_id):
     with self.con:
-      self.cur.execute("""SELECT * FROM "Rubric" WHERE min_op<=%s and fixing=false;""", (op,))
+      self.cur.execute("""SELECT * FROM "Theme" WHERE min_op<=%s and fixing=false and type_id=%s;""", (op, type_id))
       result = self.cur.fetchall()
       return result
     
-  def add_rubric(self, title, mini_dop, min_op, only_red, user_id=None):
+  def add_theme(self, title, mini_dop, min_op, only_red, user_id=None, type_id=None):
     with self.con:
-      return self.cur.execute("""INSERT INTO "Rubric"(title, date, mini_dop, min_op, only_red, create_user_id) VALUES (%s, %s, %s, %s, %s, %s);""", (title, datetime.today(), mini_dop, min_op, only_red, user_id))
+      return self.cur.execute("""INSERT INTO "Theme"(title, date, mini_dop, min_op, only_red, create_user_id, type_id) VALUES (%s, %s, %s, %s, %s, %s, %s);""", (title, datetime.today(), mini_dop, min_op, only_red, user_id, type_id))
     
   def add_op(self, user_name, op):
     with self.con:

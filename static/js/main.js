@@ -50,7 +50,8 @@ new Vue({
   delimiters: ["[[", "]]"],
   data: {
     min_op: null,
-    only_read: false
+    only_read: false, 
+    theme_title: null
   },
   methods: {
     CkeckBox: function(){

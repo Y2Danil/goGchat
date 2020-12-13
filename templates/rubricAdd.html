@@ -6,13 +6,21 @@
 
 {% block content %}
   {% if current_user %}
-    <form method="post" action="/addRubric" id='addRubric' class='col-10'>
+    <form method="post" action="/addTheme" id='addRubric' class='col-10'>
       <h2 class='h1_add_rubric display-4'>Создать тему</h2>
-      <input name="rubric_name" type='text' placeholder="Имя темы"><br>
+      <input name="rubric_name" id='rubric_name' type='text' placeholder="Имя темы" v-model='theme_title'><br>
       <input name="mini_dop" type='text' placeholder="мини-описание"><br>
       <input name="min_op" id='min_op_in_add_rubric' type='text' placeholder="минимальный опыт" v-model='min_op'><br>
       <div v-if='min_op > {{ user_info[4] }}'>
         <label for="min_op_in_add_rubric" style='color: red; font-size: .85em;'>Необходимый опыт больше вашего!</label>
+      </div>
+      <div class="form-group" style='margin: 5px 0;' >
+        <label for='types_click' class='label_select'>Раздел:</label>
+        <select class="form-control form-control-sm" id="types_click" name="type_theme">
+          {% for t in types %}
+            <option value='{{ t[0] }}'>{{ t[1] }}</option>
+          {% end %}
+        </select>
       </div>
       <div class='checkbox_div form-check'>
         <input v-on:click='CkeckBox' id="only_read" name="only_read" type='checkbox' class="form-check-input" v-bind:value="only_read">
@@ -104,6 +112,32 @@
       color: #fff;
       border: 2px solid rgba(255, 42, 95, 0.65);
       padding: 4px;
+    }
+    .label_select {
+      color: #cdcdcd;
+    }
+    #types_click {
+      background: #121212;
+      border: 1px solid #323232;
+      border-radius: 4px;
+      color: #ccc;
+      padding: 3px;
+      padding-left: 7px;
+      width: 100%;
+      height: 35px;
+      transition: .2s;
+      font-size: 1.1em;
+    }
+    #types_click:focus {
+      color: #fff;
+      border: 2px solid rgba(255, 251, 0, 0.75);
+      outline: none;
+      padding-left: 3px;
+      box-shadow: none;
+      -o-appearance: none;
+      -moz-appearance: none;
+      -webkit-appearance: none;
+      appearance: none;
     }
     .addRubricButton {
       background: #101010;
