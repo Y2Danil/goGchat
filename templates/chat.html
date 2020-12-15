@@ -16,7 +16,7 @@
         {% for r in poSQL().select_fixing_themes(user_info[4], t[0]) %}
         <div class="rubric col-sm-11 col-md-11 col-lg-8 col-xl-8">
           <h1>
-            <a href="/rubric-{{ r[0] }}">{{ r[1] }}</a>
+            <a href="/rubric-{{ r[0] }}/1">{{ r[1] }}</a>
           </h1>
           <span>{{ r[2] }}</span>
         </div>
@@ -34,7 +34,7 @@
         {% for r in poSQL().select_fixing_themes(0, t[0]) %}
         <div class="rubric col-sm-11 col-md-11 col-lg-8 col-xl-8">
           <h1>
-            <a href="/rubric-{{ r[0] }}">{{ r[1] }}</a>
+            <a href="/rubric-{{ r[0] }}/1">{{ r[1] }}</a>
           </h1>
           <span>{{ r[2] }}</span>
         </div>

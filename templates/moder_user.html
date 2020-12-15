@@ -5,79 +5,81 @@
 {% end %}
 
 {% block content %}
-  {% if (poSQL().select_user_po_name(escape(current_user))[0][5] == True or poSQL().select_user_po_name(escape(current_user))[0][3] == True) and current_user != user_info[1] %}
+  {% if True %}
   <div id='userInfo'>
     <div class="modale col-12">
-        {% if user_info[6] %}
-          <div class='img_user'>
-            <img class='ava_img' src="{{ava}}" width='25%'>
-            {% if youIsUser %}
-              <form enctype="multipart/form-data" method='post' action='/add_ava'>
-                <input type="hidden" name="user" value='{{user_info[1]}}'>
-                <input type="hidden" name="url" value='{{request.path}}'>
-                <input type="file" name='add_ava'>
-                <button type="submit">Отправить</button>
-              </form>
-            {% end %}
-          </div>
-        {% end %}
-        <strong>Пользователь:
-          <span class='username'>{{ user_info[1] }}</span>
-        </strong><br>
-        <strong>Опыт:
+      {% if user_info[6] %}
+        <div>
+          <img class='ava_img' src="{{ava}}" width='30%'>
+        </div>
+      {% end %}
+        <div>
+          <strong style='color: #bbb; font-size: 1.2em;'>Пользователь:
+            <span class='username'>{{ user_info[1] }}</span>
+          </strong>
+        </div>
+        {% if (not youIsUser and cur_user[5]) or cur_user[3] %}
+        <strong style='color: #bbb; font-size: 1.2em;'>Опыт:
           <span class='add_op' v-if='0 < col_op && col_op < 6 && col_op != 0'>{{ user_info[4] }}<span style='color: rgb(0, 145, 19)'>+[[ col_op ]]</span></span>
           <span class='add_op' v-else-if='0 > col_op && col_op != 0'>{{ user_info[4] }}<span style='color: rgb(253, 0, 0)'>[[ col_op ]]</span></span>
           <span class='add_op' v-else>{{ user_info[4] }}</span>
         </strong>
-      <div class='add_op'>
-        <form method="post" action="/addOP?next={{request.path}}" class='user_form'>
-          <span>Max OP - 5</span><br>
-          <input type="number" name='OP' id='OP' v-model="col_op">
-          <input type="hidden" value="{{ user_info[1] }}" name='addOP_username' id='addOP_username'>
-          <input type="hidden" value="{{ request.path }}" name='url_in_user' id='url_in_user'>
-          <button type="submit">Добавить</button>
-          {% module xsrf_form_html() %}
-        </form>
-      </div>
-    </div>
-  </div>
-  {% elif current_user == user_info[1] %}
-  <div id='userInfo'>
-    <div class="modale col-12">
-      {% if user_info[6] %}
-      <div class='img_user'>
-        <img class='ava_img' src="{{ava}}" width='25%'>
-      </div>
-      {% end %}
-      <strong>Пользователь:
-          <span class='username'>{{ user_info[1] }}</span>
-      </strong><br>
-      <div class="settings">
-          {% if youIsUser %}
-            <div class='NewAva'>
-              <form enctype="multipart/form-data" method='post' action='/add_ava'>
-                <strogn class='newAva_strong'>Установить новую аву</strong>
-                <input type="hidden" name="user" value='{{user_info[1]}}'>
-                <input type="hidden" name="url" value='{{request.path}}'>
-                <input type="file" name='add_ava' id='add_ava'>
-                <div class='label_add_ava'>
-                  <label for="add_ava" class='col-12'>Новая ава</label>
-                </div>
-                <button type="submit">Отправить</button>
+        {% else %}
+        <strong style='color: #bbb; font-size: 1.2em;'>Опыт:
+          <span class='add_op' v-if='0 <= col_op'>{{ user_info[4] }}</span>
+          <span class='add_op' style='color: rgb(253, 0, 0)' v-else-if='0 > col_op'>{{ user_info[4] }}</span>
+        </strong>
+        {% end %}
+        {% if cur_user[3] or (cur_user[5] and not youIsUser)  %}
+          <div class='add_op'>
+            <form method="post" action="/addOP?next={{request.path}}" class='user_form'>
+              <div>
+              <span>Max OP - 5</span><br>
+              <input type="number" name='OP' id='OP' v-model="col_op">
+              <input type="hidden" value="{{ user_info[1] }}" name='addOP_username' id='addOP_username'>
+              <input type="hidden" value="{{ request.path }}" name='url_in_user' id='url_in_user'>
+              {% if not cur_user[3] %}
+                <button v-if='col_op < 6' type="submit" class='btn_add_op'>Добавить</button>
+                <button v-else type="button" class='lock_btn_add_op' disabled>Добавить</button>
+              </div>
+                <label v-if='col_op > 5' for="OP" style='color: red; font-size: .85em;'>Нельзя добавить больше 5оп за раз!</label>
+              {% else %}
+                <button type="submit" class='btn_add_op'>Добавить</button>
+              </div>
+              {% end %}
+              {% module xsrf_form_html() %}
+            </form>
+          </div>
+        {% end %}
+        {% if youIsUser %}
+        <div>
+          <button class="button_ava_target" type="button" data-toggle="collapse" data-target="#new_avatar" aria-expanded="false" aria-controls="new_avatar">
+            Выбрать новую аватарку
+          </button>
+          <div id='new_avatar' class="collapse">
+            <div>
+              {% for a in avatars %}
+              <form method="post" action="/addAva">
+                <input type="hidden" name="url" id='url' value='{{ request.path }}'>
+                <button type="submit" name="newAva" value='{{a}}'>
+                  <img src="static/avatar/{{a}}" style='width: 100px; height: 100px; '>
+                </button>
                 {% module xsrf_form_html() %}
               </form>
+              {% end %}
             </div>
-            {% end %}
+          </div>
+        </div>
+        {% end %}
       </div>
     </div>
-  </div>
   {% else %}
     <strong>error404</strong>
   {% end %}
 
   <style>
-    main {
-      margin: 0 5px;
+    .ava_img {
+      border: 1px solid #2e2e30;
     }
     .newAva_strong {
       color: #fff;
@@ -89,13 +91,74 @@
     .add_op {
       color: yellowgreen;
     }
-    .user_form  strong {
+    div.add_op {
+      margin-bottom: 10px;
+    }
+    #OP {
+      color: #a8a8a8e8;
+      background: rgb(10, 10, 10);
+      border: 2px solid #2e2e30;
+      padding: 2px;
+      transition: .2s;
+    }
+    #OP:focus {
+      outline: none;
+      box-shadow: 0 0 1px 1px yellowgreen;
+    }
+    .btn_add_op {
+      color: #a8a8a8e8;
+      background: rgb(10, 10, 10);
+      border: 2px solid #2e2e30;
+      border-radius: 4px;
+    }
+    .btn_add_op:hover {
+      color: #999;
+      background: rgb(5, 5, 5);
+      border: 2px solid #2e2e30;
+    }
+    .lock_btn_add_op {
+      color: #666;
+      background: rgb(3, 3, 3);
+      border: 2px solid #222;
+      border-radius: 4px;
+    }
+    .button_ava_target {
+      color: #a8a8a8e8;
+      background: rgb(10, 10, 10);
+      border: 2px solid #2e2e30;
+      border-radius: 4px;
+      padding: 2px 3px;
+      margin-bottom: 5px;
+    }
+    .button_ava_target:hover {
+      color: #999;
+      background: rgb(5, 5, 5);
+      border: 2px solid #2e2e30;
+    }
+    .user_form strong {
       color: #dfdfdf;
     }
     input[name='add_ava'] {
       width: 0.1px;
       height: 0.1px;
       opacity: 0;
+    }
+    #new_avatar {
+      border: 1px solid #2e2e30;
+      padding: 5px 2px 0px 2px;
+      margin: 0 auto;
+      width: 98%;
+    }
+    #new_avatar > div {
+      margin: 0 auto;
+    }
+    #new_avatar div form {
+      display: inline;
+    }
+    #new_avatar form button {
+      border: 2px solid #2e2e30;
+      padding: 0;
+      margin-bottom: 5px !important;
     }
     div.label_add_ava {
       border-radius: 5px;
@@ -114,6 +177,11 @@
     }
     .label_add_ava:hover {
       box-shadow: 0 0 1px 2px greenyellow;
+    }
+    @media (max-width: 992px) {
+      main {
+        margin: 0 5px;
+      }
     }
   </style>
 

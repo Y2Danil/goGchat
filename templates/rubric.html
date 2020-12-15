@@ -23,7 +23,7 @@
         <div class='msg_content'>
           <spanc class='pub_date'>{{ m[4].strftime("%d.%m.%y %H:%M") }}</span>
           <div class='user_info' style='display: flex;'>
-            <img class="img-fluid" style='width: 50px; height: 50px;' src="{{ m[6] }}">
+            <img class="img-fluid" style='width: 60px; height: 60px;' src="{{ m[6] }}">
             <div>
               {% if current_user %}
                 {% if m[5][3] or m[5][5] %}
@@ -52,7 +52,7 @@
                   {% end %}
                 {% end %}
               {% end %}
-                <br>
+                <br style='line-height: 0%; display: block; margin: 0px 0; content: " ";'>
                 <span class='OP'>Опыт:
                   {% if m[5][4] >= 0 %}
                     <span class='col_op_plus'>{{m[5][4]}}</span>
@@ -66,6 +66,64 @@
         </div>
       </div>
     {% end %}
+    {% if len_msgs > 15 %}
+      <div class='nav_page_bar'>
+        {% for l in col_stranich %}
+          {% if l == int(col_msg) %}
+            <div class='active_page'>
+              <a href='/rubric-{{rubric[0]}}/{{l}}'>{{l}}</a>
+            </div>
+          {% else %}
+            <div class='num_page'>
+              <a href='/rubric-{{rubric[0]}}/{{l}}'>{{l}}</a>
+            </div>
+          {% end %}
+        {% end %}
+      </div>
+    {% end %}
+    <style>
+      .nav_page_bar {
+        display: flex;
+        border-radius: 4px;
+        margin: 0 auto;
+        margin-bottom: 10px;
+        max-width: 90%;
+        min-width: 5% !important;
+        background-color: rgb(10, 10, 10);
+        border: 2px solid #2e2e30;
+      }
+      .num_page {
+        border-right: 1px solid #333;
+      }
+      .active_page {
+        border-right: 1px solid #333;
+        background-color: rgb(7, 7, 7);
+        box-shadow: inset 0px 0px 3px 1px #000;
+      }
+      .active_page a {
+        text-decoration: none;
+        color: #bbb;
+        font-weight: 600;
+        padding: 4px 12px;
+      }
+      .num_page:hover {
+        color: #bbb;
+        background-color: rgb(5, 5, 5);
+      }
+      .num_page a {
+        text-decoration: none;
+        color: #ddd;
+        font-weight: 600;
+        padding: 4px 12px;
+      }
+      .num_page a:hover {
+        color: #bbb;
+      }
+      .num_page a:focus {
+        color: #999;
+      }
+    </style>
+    </div>
   {% else %}
 
     <h1>Сообщений нет :(</h1>
@@ -74,6 +132,7 @@
   {% if current_user and rubric[5] != True %}
     <form class="form-group" method='post' action='/add-message-in-rubric-{{ rubric[0] }}' id='form_message'>
       <input value='{{ rubric[1] }}' name='rubric_name' id='rubric_name' type="hidden" readonly>
+      <input type="hidden" name="redic" value='{{request.path}}' readonly>
       <textarea id="message_textarea" class='' name="message_textarea" rows="5" placeholder="Ваше сообщение"></textarea>
       <button class="btn btn-dark col-12" type="submit">Отправить</button>
       {% module xsrf_form_html() %}
@@ -119,7 +178,7 @@
     }
     .message {
       margin-bottom: 20px;
-      min-height: 150px;
+      min-height: 170px;
       border-top: 1px solid #333;
       border-bottom: 1px solid #333;
     }
@@ -132,15 +191,17 @@
     .user_name {
       color: #cfcfcf;
       font-weight: 900;
-      font-size: 1.1em;
+      font-size: 1.3em;
     }
     .msg_text {
       color: #fff;
-      font-size: 1.2em;
+      font-size: 1.1em;
     }
     .OP {
       font-size: 1.1em;
-      color: #ddd;
+      color: #bbb;
+      position: relative;
+      bottom: 3px;
     }
     .col_op_plus {
       color: green;
@@ -150,6 +211,8 @@
     }
     #form_message {
       margin-top: 25px;
+      margin-left: 5px;
+      margin-right: 5px;
     }
     #form_message #message_textarea {
       background: rgb(10, 10, 10);

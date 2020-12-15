@@ -1,0 +1,8 @@
+{% if youIsUser %}
+              <form enctype="multipart/form-data" method='post' action='/add_ava'>
+                <input type="hidden" name="user" value='{{user_info[1]}}'>
+                <input type="hidden" name="url" value='{{request.path}}'>
+                <input type="file" name='add_ava'>
+                <button type="submit">Отправить</button>
+              </form>
+            {% end %}

@@ -8,6 +8,7 @@ import yaml
 import os
 import re
 import typing
+from ftplib import FTP
 
 import owm
 from poSQL import *
@@ -45,7 +46,6 @@ class MainHandler(tornado.web.RequestHandler):
     return self.get_secure_cookie("user")
   
   def key(self):
-    print(self.get_secure_cookie("key"))
     return self.get_secure_cookie("key")
     
 class Chat(MainHandler):
@@ -101,11 +101,15 @@ class Type(Chat):
 class Rubric(Chat):
   async def get(self):
     url = str(self.request.path)
-    rubric_id = re.search(r"rubric-[0-9]*", str(url), flags=0)
+    rubric_id = re.search(r"(rubric-[0-9]*)\/\w+", str(url), flags=0)
     rubric_id = re.search(r"c-[0-9]*", str(rubric_id))
     rubric_id = rubric_id.group(0)[2:]
     rubric = po.select_theme_only_id(rubric_id)[0]
-    #self.key = None
+    
+    col_msg = re.search(r"rubric-[0-9]*\/\w+", str(url), flags=0)
+    col_msg = re.search(r"(\/\d+)", col_msg.group(0))
+    col_stranich = []
+    
     if self.key():
       key = self.key()
     else:
@@ -115,6 +119,43 @@ class Rubric(Chat):
         user_info = po.select_user_po_name(self.current_user.decode())[0]
         if rubric[4] <= user_info[4]:
           messages = po.select_theme_messages(rubric_id)
+          
+          len_msgs = len(messages)
+          copy_len_msgs = len_msgs
+          
+          if len_msgs > 15:
+            srez = {'start': 0, 'end': 0}
+            msg_col = 0
+            for i in range(0, len_msgs):
+              if len_msgs > 14:
+                col_stranich.append(i+1)
+                len_msgs -= 15
+              else:
+                if len_msgs > 0:
+                  col_stranich.append(i+1)
+                  break
+                else: 
+                  break
+                
+            len_msgs = copy_len_msgs
+            
+            for i in range(0, int(col_msg.group(0)[1:])):
+              print(i)
+              if len_msgs > 14:
+                if i != 0:
+                  srez['start'] += 15
+                srez['end'] += 15
+                len_msgs -= 15
+              else:
+                if len_msgs > 0 and len_msgs < 15:
+                  srez['start'] += len_msgs
+                  srez['end'] += len_msgs
+                  break
+                else:
+                  break
+    
+            messages = messages[srez['start']:srez['end']]
+            
           for m in messages:
             index = messages.index(m)
             m = list(m)
@@ -130,11 +171,48 @@ class Rubric(Chat):
               pass
             m.append(user_ava)
             messages[index] = m
-          self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
+          self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key, col_stranich=col_stranich, col_msg=col_msg.group(0)[1:], len_msgs=copy_len_msgs)
         else:
           self.redirect('/')
       else:
         messages = po.select_theme_messages(rubric_id)
+        len_msgs = len(messages)
+        copy_len_msgs = len_msgs
+          
+        if len_msgs > 15:
+          srez = {'start': 0, 'end': 0}
+          msg_col = 0
+          for i in range(0, len_msgs):
+            if len_msgs > 14:
+              col_stranich.append(i+1)
+              len_msgs -= 15
+            else:
+              if len_msgs > 0:
+                col_stranich.append(i+1)
+                break
+              else: 
+                break
+                
+          len_msgs = copy_len_msgs
+          
+          for i in range(0, int(col_msg.group(0)[1:])):
+            print(i)
+            if len_msgs > 14:
+              if i != 0:
+                srez['start'] += 15
+              srez['end'] += 15
+              len_msgs -= 15
+              
+            else:
+              if len_msgs > 0 and len_msgs < 15:
+                srez['start'] += len_msgs
+                srez['end'] += len_msgs
+                break
+              else:
+                break
+    
+          messages = messages[srez['start']:srez['end']]
+          
         for m in messages:
           index = messages.index(m)
           m = list(m)
@@ -150,9 +228,44 @@ class Rubric(Chat):
             pass
           m.append(user_ava)
           messages[index] = m
-        self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
+        self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key, col_stranich=col_stranich, col_msg=col_msg.group(0)[1:], len_msgs=copy_len_msgs)
     else:
       messages = po.select_theme_messages(rubric_id)
+      len_msgs = len(messages)
+      copy_len_msgs = len_msgs
+          
+      if len_msgs > 15:
+        srez = {'start': 0, 'end': 0}
+        msg_col = 0
+        for i in range(0, len_msgs):
+          if len_msgs > 14:
+            col_stranich.append(i+1)
+            len_msgs -= 15
+          else:
+            if len_msgs > 0:
+              col_stranich.append(i+1)
+              break
+            else: 
+              break
+                
+        len_msgs = copy_len_msgs
+          
+        for i in range(0, int(col_msg.group(0)[1:])):
+          print(i)
+          if len_msgs > 14:
+            if i != 0:
+              srez['start'] += 15
+            srez['end'] += 15
+            len_msgs -= 15
+          else:
+            if len_msgs > 0 and len_msgs < 15:
+              srez['start'] += len_msgs
+              srez['end'] += len_msgs
+              break
+            else:
+              break
+    
+        messages = messages[srez['start']:srez['end']]
       for m in messages:
         index = messages.index(m)
         m = list(m)
@@ -168,7 +281,78 @@ class Rubric(Chat):
           pass
         m.append(user_ava)
         messages[index] = m
-      self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
+      self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key, col_stranich=col_stranich, col_msg=col_msg.group(0)[1:], len_msgs=copy_len_msgs)
+      
+  # async def get(self):
+  #   url = str(self.request.path)
+  #   rubric_id = re.search(r"rubric-[0-9]*", str(url), flags=0)
+  #   rubric_id = re.search(r"c-[0-9]*", str(rubric_id))
+  #   rubric_id = rubric_id.group(0)[2:]
+  #   rubric = po.select_theme_only_id(rubric_id)[0]
+  #   #self.key = None
+  #   if self.key():
+  #     key = self.key()
+  #   else:
+  #     key = None
+  #   if rubric[4] != -10:
+  #     if self.current_user:
+  #       user_info = po.select_user_po_name(self.current_user.decode())[0]
+  #       if rubric[4] <= user_info[4]:
+  #         messages = po.select_theme_messages(rubric_id)
+  #         for m in messages:
+  #           index = messages.index(m)
+  #           m = list(m)
+  #           user = po.select_user_po_id(int(m[2]))[0]
+  #           user_id = user[0]
+  #           user_name = user[1]
+  #           m.append(user)
+  #           user_ava = user[6]
+  #           user_ava = self.static_url(f'avatar/{user_ava}')
+  #           try:
+  #             m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+  #           except UnicodeDecodeError:
+  #             pass
+  #           m.append(user_ava)
+  #           messages[index] = m
+  #         self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
+  #       else:
+  #         self.redirect('/')
+  #     else:
+  #       messages = po.select_theme_messages(rubric_id)
+  #       for m in messages:
+  #         index = messages.index(m)
+  #         m = list(m)
+  #         user = po.select_user_po_id(int(m[2]))[0]
+  #         user_id = user[0]
+  #         user_name = user[1]
+  #         m.append(user)
+  #         user_ava = user[6]
+  #         user_ava = self.static_url(f'avatar/{user_ava}')
+  #         try:
+  #             m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+  #         except UnicodeDecodeError:
+  #           pass
+  #         m.append(user_ava)
+  #         messages[index] = m
+  #       self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
+  #   else:
+  #     messages = po.select_theme_messages(rubric_id)
+  #     for m in messages:
+  #       index = messages.index(m)
+  #       m = list(m)
+  #       user = po.select_user_po_id(int(m[2]))[0]
+  #       user_id = user[0]
+  #       user_name = user[1]
+  #       m.append(user)
+  #       user_ava = user[6]
+  #       user_ava = self.static_url(f'avatar/{user_ava}')
+  #       try:
+  #         m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+  #       except UnicodeDecodeError:
+  #         pass
+  #       m.append(user_ava)
+  #       messages[index] = m
+  #     self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key)
           
   # @tornado.gen.coroutine
   # def post(self):
@@ -296,6 +480,8 @@ class KeyRubric(MainHandler):
     
       self.redirect(redic);
     else:
+      self.set_secure_cookie('key', key);
+      self.key = self.get_secure_cookie('key');
       self.redirect(redic);
   
 class AddMessage(Rubric):
@@ -303,6 +489,7 @@ class AddMessage(Rubric):
   def post(self):
     if self.current_user:
       rubric_name = self.get_argument("rubric_name", '')
+      redic = self.get_argument("redic", '')
       rubric = po.select_themes_only_title(rubric_name)[0]
       rubric_id = rubric[0]
       message_text = self.get_argument("message_textarea", '')
@@ -312,30 +499,58 @@ class AddMessage(Rubric):
       message_text = he.shifr(message_text, self.key())
       print(message_text)
       po.add_message(message_text, rubric_id, user[0][0])
-      print(f'/rubric-{rubric_id}')
-      self.redirect(f'/rubric-{rubric_id}')
+      # print(f'/rubric-{rubric_id}')
+      messages = po.select_theme_messages(rubric_id)
+      print('>>>', messages)
+      srez = {'start': 0, 'end': 0}
+          
+      len_msgs = len(messages)
+      print(len_msgs)
+      index = 0
+      for i in range(0, len_msgs):
+        print(i)
+        if i % 2 == 0:
+          index += 1
+        
+        print('>>>', index)
+          
+      print(index)
+      print(rubric_id)
+      self.redirect(f'/rubric-{rubric_id}/{index}')
     else:
       self.redirect('/')
       
 class UserAcc(MainHandler):
   @tornado.gen.coroutine
   def get(self):
-    url = self.request.path
-    print(url)
-    redic = int(url[9:])
-    print(redic)
-    user = po.select_user_po_name(self.current_user.decode())[0]
-    if user[-1] in [True, 1, 'true', 'True'] or user[3] in [True, 1, 'true', 'True'] or self.current_user.decode() == redic:
-      user_info = po.select_user_po_id(redic)[0]
-      if user_info[1] == self.current_user.decode():
-        youIsUser = True
-      else: 
-        youIsUser = False
-      ava = user_info[6]
-      ava = self.static_url(f"avatar/{ava}")
-      print(user_info)
-      print(self.current_user)
-      self.render('templates/moder_user.html', temp=self.temp, user_info=user_info, ava=ava, youIsUser=youIsUser, current_user=self.current_user.decode())
+    if self.current_user:
+      url = self.request.path
+      redic = int(url[9:])
+      #user = po.select_user_po_name(self.current_user.decode())[0]
+      user = po.select_user_po_id(redic)[0]
+      cur_user = po.select_user_po_name(self.current_user.decode('utf-8'))[0]
+      if True:
+        #user_info = po.select_user_po_id(redic)[0]
+        if user[1] == self.current_user.decode():
+          youIsUser = True
+        else: 
+          youIsUser = False
+        avatars = []
+        os.chdir('static/avatar')
+        for root, dirs, files in os.walk(".", topdown = False):
+          for name in files:
+            avatars.append(os.path.join(root, name)[2:])
+        os.chdir('../../')
+        avatars.remove('ava_Danil++_id=1.jpg')
+        ava = user[6]
+        ava = self.static_url(f"avatar/{ava}")
+        self.render('templates/moder_user.html',
+                    temp=self.temp, 
+                    user_info=user,
+                    ava=ava,
+                    youIsUser=youIsUser,
+                    avatars=avatars,
+                    cur_user=cur_user)
     else:
       self.render('/')
       
@@ -352,28 +567,34 @@ class AddOP(MainHandler):
     redic = self.get_argument('url_in_user', '')
     if self.current_user:
       user = po.select_user_po_name(self.current_user.decode())[0]
-      if user[-1] in [True, 1, 'true', 'True'] or user[3] in [True, 1, 'true', 'True']:
-        userName = self.get_argument('addOP_username', '')
-        op = self.get_argument('OP', '')
+      userName = self.get_argument('addOP_username', '')
+      op = self.get_argument('OP', '')
+      if int(op) <= 5:
         po.add_op(userName, int(op))
+      else:
+        if user[3]:
+          po.add_op(userName, int(op))
+        else:
+          po.add_op(userName, 5)
     self.redirect(redic)
     
 class AddAva(UserAcc):
   @tornado.gen.coroutine
   def post(self):
     try:
-      newAva = self.request.files['add_ava'][0];
+      #newAva = self.request.files['add_ava'][0];
+      newAVA = self.get_argument('newAva', '');
       redic = self.get_argument('url', '');
-      original_fname = newAva['filename'];
-      redic = self.get_argument('url', '');
-      user = self.get_argument('user', '');
-      user = self.current_user;
-      user_info = po.select_user_po_name(user.decode())[0];
-      f = open('static/avatar/{0}'.format(user_info[6]), 'wb');
-      f.write(newAva['body']);
-      po.update_ava(self.current_user.decode(), user_info[6]);
-      f.close();
-      self.redirect(redic)
+      print(redic)
+      if self.current_user:
+        user = self.current_user.decode('utf-8');
+        
+        po.update_ava(user, newAVA);
+      # f = open('static/avatar/{0}'.format(user_info[6]), 'wb');
+      # f.write(newAva['body']);
+      
+      # f.close();
+      self.redirect(redic);
     except:
       pass
 
@@ -430,13 +651,13 @@ class Application(tornado.web.Application):
     handlers = [
       (r"/", Chat),
       (r"/type-\w+", Type),
-      (r"/rubric-\w+", Rubric),
+      (r"/rubric-\w+\/\w+", Rubric),
       (r'/post-key', KeyRubric),
       (r'/addTheme', AddRubric),
       (r'/add-message-in-rubric-\w*\d*\s*', AddMessage),
       (r"/userAcc-.\d*\w*\s*", UserAcc),
       (r'/addOP\d*\w*\s*', AddOP),
-      (r'/add_ava', AddAva),
+      (r'/addAva', AddAva),
       (r"/reg", ImportRegister),
       (r"/register", Register),
       (r"/log", ImportLogin),

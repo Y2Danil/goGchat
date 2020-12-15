@@ -31,7 +31,9 @@ new Vue({
   data: {
     col_op: null,
     op: false,
-    ava_url: 'avatar/default_ava.jpg'
+    ava_url: 'avatar/default_ava.jpg',
+    ava_all: null,
+    ava_new: null
   },
   methods: {
     OP: function(){
@@ -41,6 +43,10 @@ new Vue({
       } else {
         this.op = false;
       }
+    },
+    clickIMG: function(event){
+      this.ava_new = event;
+      alert(this.ava_new);
     }
   }
 });
@@ -59,6 +65,18 @@ new Vue({
     }
   }
 });
+
+// new Vue({
+//   el: '#new_avatar',
+//   delimiters: ["[[", "]]"],
+//   data: {
+//     ava_all: null,
+//     ava_new: null
+//   },
+//   methods: {
+    
+//   }
+// });
 
 // new Vue({
 //   el: '#keyOpen',

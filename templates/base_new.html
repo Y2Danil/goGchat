@@ -48,6 +48,11 @@
                 <a class="nav-link" href="/addTheme">Создать тему</a>
               </li>
               {% end %}
+              {% if current_user %}
+              <li class="nav-item">
+                <a class="nav-link" href="/userAcc-{{ poSQL().select_user_po_name(escape(current_user))[0][0] }}">Ваш акк</a>
+              </li>
+              {% end %}
           </ul>
         </div>
           </nav>
