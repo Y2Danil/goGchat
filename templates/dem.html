@@ -7,22 +7,22 @@
 {% block content %}
   <h1 class='display-4' style='margin-left: 15px; color: #ccc; font-weight: 600;'>Темы</h1>
   {% if fixing_rubrics %}
-    {% for fr in fixing_rubrics %}
+    {% for frr in fixing_rubrics %}
       <div class="rubric col-sm-11 col-md-11 col-lg-8 col-xl-8">
-          <h1>
-            <a href="/rubric-{{ fr[0] }}/1">{{ fr[1] }}</a>
-          </h1>
-        <span>{{ fr[2] }}</span>&nbsp;<span style='font-size: .9em; font-weight: 100; color: #d303039c; margin: auto 0;'>закреплено</span>
+        <h1>
+          <a href="/rubric-{{ frr[0] }}/1">{{ frr[1] }}</a>
+        </h1>
+        <span>{{ frr[2] }}</span>&nbsp;<span style='font-size: .9em; font-weight: 100; color: #d303039c; margin: auto 0;'>закреплено</span>
       </div>
     {% end %}
   {% end %}
   {% if rubrics %}
-    {% for r in rubrics %}
+    {% for rr in rubrics %}
       <div class="rubric col-sm-11 col-md-11 col-lg-8 col-xl-8">
         <h1>
-          <a href="/rubric-{{ r[0] }}/1">{{ r[1] }}</a>
+          <a href="/rubric-{{ rr[0] }}/1">{{ rr[1] }}</a>
         </h1>
-        <span>{{ r[2] }}</span>
+        <span>{{ rr[2] }}</span>
       </div>
     {% end %}
   {% else %}
