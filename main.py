@@ -140,7 +140,6 @@ class Rubric(Chat):
             len_msgs = copy_len_msgs
             
             for i in range(0, int(col_msg.group(0)[1:])):
-              print(i)
               if len_msgs > 14:
                 if i != 0:
                   srez['start'] += 15
@@ -156,6 +155,7 @@ class Rubric(Chat):
     
             messages = messages[srez['start']:srez['end']]
             
+          theme = po.select_theme_only_id(rubric_id)[0]
           for m in messages:
             index = messages.index(m)
             m = list(m)
@@ -165,10 +165,13 @@ class Rubric(Chat):
             m.append(user)
             user_ava = user[6]
             user_ava = self.static_url(f'avatar/{user_ava}')
-            try:
-              m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
-            except UnicodeDecodeError:
-              pass
+            if theme[9]:
+              try:
+                m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+              except UnicodeDecodeError:
+                pass
+            else:
+              m[1] = bytes(m[1])
             m.append(user_ava)
             messages[index] = m
           self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key, col_stranich=col_stranich, col_msg=col_msg.group(0)[1:], len_msgs=copy_len_msgs)
@@ -196,7 +199,6 @@ class Rubric(Chat):
           len_msgs = copy_len_msgs
           
           for i in range(0, int(col_msg.group(0)[1:])):
-            print(i)
             if len_msgs > 14:
               if i != 0:
                 srez['start'] += 15
@@ -223,7 +225,7 @@ class Rubric(Chat):
           user_ava = user[6]
           user_ava = self.static_url(f'avatar/{user_ava}')
           try:
-              m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+            m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
           except UnicodeDecodeError:
             pass
           m.append(user_ava)
@@ -364,9 +366,14 @@ class AddMessage(Rubric):
       print(self.current_user.decode())
       user = po.select_user_po_name(self.current_user.decode())
       print(user)
-      message_text = he.shifr(message_text, self.key())
-      print(message_text)
-      po.add_message(message_text, rubric_id, user[0][0])
+      print(rubric[9])
+      if rubric[9]:
+        message_text = he.shifr(message_text, self.key())
+        print(message_text)
+        po.add_message(message_text, rubric_id, user[0][0])
+      else:
+        print(message_text.encode('utf-8'))
+        po.add_message(message_text.encode('utf-8'), rubric_id, user[0][0])
       # print(f'/rubric-{rubric_id}')
       messages = po.select_theme_messages(rubric_id)
       print('>>>', messages)
@@ -546,5 +553,5 @@ if __name__ == "__main__":
   app = Application()
   port = int(os.environ.get("PORT", 5000))
   app.listen(port)
-  app.listen(8888)
+  #app.listen(8888)
   tornado.ioloop.IOLoop.current().start()

@@ -10,12 +10,14 @@
   <h1 class='rubric_name'>
     {{ rubric[1] }}
   </h1>
+  {% if rubric[9] %}
   <form method="post" action="/post-key" class='keyOpen' id='keyOpen'>
     {% module xsrf_form_html() %}
     <input name="key" id="key" placeholder="ключ">
     <input type="hidden" name="redic" value='{{ request.path }}'>
     <button type="submit">Отправить</button>
   </form>
+  {% end %}
 
   {% if messages %}
     {% for m in messages %}
@@ -345,7 +347,7 @@
   </style>
 
   <script>
-    function smok(){
+    function msg_func(){
       let all_message = document.getElementsByClassName('message');
       let all_text = document.querySelectorAll("p.msg_text");
       all_text.forEach(i => {
@@ -355,10 +357,12 @@
         let re = /#!.+!#/g;
         let re1 = /#!/g;
         let re2 = /!#/g;
-        let a = m.replace(re1, `<button class='smok'>`);
+        let rebr = /\[br\]/g;
+        let br = m.replace(rebr, `<br>`);
+        let a = br.replace(re1, `<button class='smok'>`);
         let b = a.replace(re2, `</button>`);
         i.innerHTML = b;
         });
-  } smok();
+  } msg_func();
   </script>
 {% end %}
