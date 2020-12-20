@@ -67,7 +67,7 @@
           </div>
           <p class='msg_text' id="msg_test_id_{{ika}}">{{ m[1] }}</p>
           {% if m[5][1] == current_user.decode('utf-8') %}
-            <button type='button' class='regBtn' id='Btn-{{ika}}' value='msg_test_id_{{ika}}' data-toggle="modal" data-target="#exampleModal{{ika}}">редактировать</button>
+            <button type='button' class='regBtn' id='Btn-{{ika}}' value='msg_test_id_{{ika}}' data-toggle="modal" data-target="#exampleModal{{ika}}">edit</button>
             <!-- <form id='form_reder_id_{{ika}}' class='RegForm' method="post" action="/rederMsg">
               
               <input type="hidden" name="msg_id" value='{{m[0]}}'>
@@ -136,6 +136,8 @@
               background-color: rgb(10, 10, 10);
               border: 1px solid #2e2e30;
               border-radius: 4px;
+              font-size: .9em;
+              font-weight: 300;
             }
           </style>
         </div>
@@ -262,6 +264,7 @@
       min-height: 170px;
       border-top: 1px solid #333;
       border-bottom: 1px solid #333;
+      padding-bottom: 3px;
     }
     .pub_date {
       font-size: .8em;
@@ -359,7 +362,8 @@
         border-radius: 4px;
       }
     .likes {
-      margin: 10px 1px !important;
+      margin: 0 1px;
+      margin-top: 10px !important;
     }
     .OP {
       font-size: .9em;
