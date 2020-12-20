@@ -99,7 +99,8 @@ class Type(Chat):
       self.render('templates/type.html', type=type, themes=themes)
     
 class Rubric(Chat):
-  async def get(self):
+  @tornado.gen.coroutine
+  def get(self):
     url = str(self.request.path)
     rubric_id = re.search(r"(rubric-[0-9]*)\/\w+", str(url), flags=0)
     rubric_id = re.search(r"c-[0-9]*", str(rubric_id))
@@ -173,7 +174,17 @@ class Rubric(Chat):
             else:
               m[1] = bytes(m[1])
             m.append(user_ava)
+            likes = po.select_like_msg(m[0])
+            like_user = []
+            
+            for l in likes:
+              user = po.select_user_po_id(l[1])[0]
+              like_user.append(user[1])
+              
+            m.append(like_user)
             messages[index] = m
+            
+          messages = sorted(messages, key=lambda x: int(x[0]))
           self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key, col_stranich=col_stranich, col_msg=col_msg.group(0)[1:], len_msgs=copy_len_msgs)
         else:
           self.redirect('/')
@@ -230,6 +241,8 @@ class Rubric(Chat):
             pass
           m.append(user_ava)
           messages[index] = m
+          
+        messages = sorted(messages, key=lambda x: int(x[0]))
         self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key, col_stranich=col_stranich, col_msg=col_msg.group(0)[1:], len_msgs=copy_len_msgs)
     else:
       messages = po.select_theme_messages(rubric_id)
@@ -283,10 +296,13 @@ class Rubric(Chat):
           pass
         m.append(user_ava)
         messages[index] = m
+        
+      messages = sorted(messages, key=lambda x: int(x[0]))
       self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key, col_stranich=col_stranich, col_msg=col_msg.group(0)[1:], len_msgs=copy_len_msgs)
 
 class AddRubric(MainHandler):
-  async def get(self):
+  @tornado.gen.coroutine
+  def get(self):
     if self.current_user:
       user_info = po.select_user_po_name(self.current_user.decode())[0];
       print(user_info);
@@ -394,6 +410,33 @@ class AddMessage(Rubric):
       self.redirect(f'/rubric-{rubric_id}/{index}')
     else:
       self.redirect('/')
+      
+class RederMsg(MainHandler):
+  @tornado.gen.coroutine
+  def post(self):
+    if self.current_user:
+      msg_id = self.get_argument('msg_id', '');
+      text = self.get_argument('newText', '');
+      redic = self.get_argument('redic', '');
+      msg = po.select_message_po_id(msg_id)[0];
+      user_id = po.select_user_po_name(self.current_user.decode('utf-8'))[0][0];
+      if msg[2] == user_id:
+        theme = po.select_theme_only_id(msg[3])[0];
+        if theme[9]:
+          msg_text = re.sub(r'(?!{{)<br>(?!}})', '[br]', text);
+          msg_text = re.sub(r'\{\{\<br\>\}\}', '<br>', msg_text);
+          msg_text = he.shifr(msg_text, self.key())
+          po.update_msg(msg_id, msg_text);
+          self.redirect(redic);
+        else:
+          msg_text = re.sub(r'(?!{{)<br>(?!}})', '[br]', text);
+          msg_text = re.sub(r'\{\{\<br\>\}\}', '<br>', msg_text);
+          po.update_msg(msg_id, msg_text);
+          self.redirect(redic);
+      else:
+        self.render('/')
+    else:
+      self.render('/')
       
 class UserAcc(MainHandler):
   @tornado.gen.coroutine
@@ -530,6 +573,7 @@ class Application(tornado.web.Application):
       (r'/post-key', KeyRubric),
       (r'/addTheme', AddRubric),
       (r'/add-message-in-rubric-\w*\d*\s*', AddMessage),
+      (r'/rederMsg', RederMsg),
       (r"/userAcc-.\d*\w*\s*", UserAcc),
       (r'/addOP\d*\w*\s*', AddOP),
       (r'/addAva', AddAva),

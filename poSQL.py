@@ -67,10 +67,20 @@ class poSQL:
       self.cur.execute("""SELECT * FROM "Message";""")
       result = self.cur.fetchall()
       return result
+    
+  def select_message_po_id(self, id):
+    with self.con:
+      self.cur.execute("""SELECT * FROM "Message" WHERE id=%s;""", (id,))
+      result = self.cur.fetchall()
+      return result
   
   def add_message(self, text, rubric_id, user_id):
     with self.con:
       return self.cur.execute("""INSERT INTO "Message"(text, pub_date, rubric_id, user_id) VALUES (%s, %s, %s, %s);""", (text, datetime.today(), rubric_id, user_id))
+  
+  def update_msg(self, id, text):
+    with self.con:
+      return self.cur.execute("""UPDATE "Message" SET text=%s WHERE id=%s""", (text, id))
     
   def select_types(self):
     with self.con:
@@ -129,6 +139,12 @@ class poSQL:
   def select_themes_plus_op_theme(self, op, type_id):
     with self.con:
       self.cur.execute("""SELECT * FROM "Theme" WHERE min_op<=%s and fixing=false and type_id=%s;""", (op, type_id))
+      result = self.cur.fetchall()
+      return result
+    
+  def select_like_msg(self, msg_id):
+    with self.con:
+      self.cur.execute("""SELECT * FROM "Like" WHERE msg_id=%s""", (msg_id,))
       result = self.cur.fetchall()
       return result
     

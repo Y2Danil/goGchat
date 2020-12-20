@@ -7,6 +7,7 @@
 {% block content %}
   {% import datetime %}
   {% from poSQL import poSQL %}
+  <div id='msgs_glob_div'>
   <h1 class='rubric_name'>
     {{ rubric[1] }}
   </h1>
@@ -20,10 +21,10 @@
   {% end %}
 
   {% if messages %}
-    {% for m in messages %}
+    {% for m, ika in zip(messages, range(0, len(messages))) %}
       <div class='message'>
         <div class='msg_content'>
-          <spanc class='pub_date'>{{ m[4].strftime("%d.%m.%y %H:%M") }}</span>
+          <span class='pub_date'>{{ m[4].strftime("%d.%m.%y %H:%M") }}</span>
           <div class='user_info' style='display: flex;'>
             <img class="img-fluid" style='width: 60px; height: 60px;' src="{{ m[6] }}">
             <div>
@@ -64,7 +65,79 @@
                 </span>
             </div>
           </div>
-          <p class='msg_text' v-on:click='BlackWhite'>{{ m[1] }}</p>
+          <p class='msg_text' id="msg_test_id_{{ika}}">{{ m[1] }}</p>
+          {% if m[5][1] == current_user.decode('utf-8') %}
+            <button type='button' class='regBtn' id='Btn-{{ika}}' value='msg_test_id_{{ika}}' data-toggle="modal" data-target="#exampleModal{{ika}}">редактировать</button>
+            <!-- <form id='form_reder_id_{{ika}}' class='RegForm' method="post" action="/rederMsg">
+              
+              <input type="hidden" name="msg_id" value='{{m[0]}}'>
+              <input type="hidden" name="reder" value='{{request.path}}'>
+              <button type="submit" style='width: 0.1px; height: 0.1px; opacity: 0;' disabled></button> -->
+              <!-- <button type='button' class='regBtn' id='Btn-{{ika}}' value='msg_test_id_{{ika}}'>редактировать</button>
+            </form-->
+          {% end %}
+          <div class="modal fade" id="exampleModal{{ika}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Редактировать</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <form method="post" action="/rederMsg">
+                  <div class="modal-body">
+                    <textarea name="newText" cols="30" rows="10">{{m[1]}}</textarea>
+                    <input type="hidden" name="msg_id" value='{{m[0]}}'>
+                    <input type="hidden" name="redic" value='{{request.path}}'>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="close_reg_btn" data-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="save_reg_btn">Сохранить</button>
+                  </div>
+                  {% module xsrf_form_html() %}
+              </form>
+              </div>
+            </div>
+          </div>
+          {% if m[7] != [] %}
+            <div class='likes'>
+              {% if len(m[7]) != 1 %}
+                <strong style='color: #bbb; font-size: 400'>
+                  Оценили:
+                </strong>
+              {% else %}
+                <strong style='color: #bbb; font-size: 400'>
+                  Оценил:
+                </strong>
+              {% end %}
+              <span>
+                {% if len(m[7]) <= 4 %}
+                  {% if len(m[7]) != 1 %}
+                    {% for i in m[7] %}
+                      <strong style='color: #ddd'>{{ i }}</strong><span style='font-size: 400'>,</span>
+                    {% end %}
+                  {% else %}
+                    <strong style='color: #ddd'>{{ m[7][0] }}</strong>
+                  {% end %}
+                {% else %}
+                  {% for i in m[7][:4] %}
+                    <strong style='color: #ddd'>{{ i }}</strong><span>,</span>
+                  {% end %}
+                  <span style='color: #aaa'>и ещё <strong tyle='color: #ddd'>{{ len(m[7][4:]) }}</strong></span>
+                {% end %}
+              </span>
+            </div>
+          {% end %}
+
+          <style>
+            .regBtn {
+              color: grey;
+              background-color: rgb(10, 10, 10);
+              border: 1px solid #2e2e30;
+              border-radius: 4px;
+            }
+          </style>
         </div>
       </div>
     {% end %}
@@ -123,6 +196,12 @@
       }
       .num_page a:focus {
         color: #999;
+      }
+      .likes {
+        margin: 0 auto;
+      }
+      .likes * {
+        font-size: .8;
       }
     </style>
     </div>
@@ -193,14 +272,97 @@
     .user_name {
       color: #cfcfcf;
       font-weight: 900;
-      font-size: 1.3em;
+      font-size: 1.1em;
     }
     .msg_text {
       color: #fff;
-      font-size: 1.1em;
+      font-size: .85em;
+    }
+      .modal-content * {
+        color: #fff;
+      }
+      .modal-header {
+        background-color: #111;
+        border-top: 1px solid #333;
+        border-bottom: none;
+        border-left: 1px solid #333;
+        border-right: 1px solid #333;
+      }
+      .modal-header .close {
+        background-color: #222;
+        border: 1px solid #333;
+        padding: 2px 9px;
+        padding-bottom: 3px;
+      }
+      .modal-body {
+        background-color: #111;
+        border-top: none;
+        border-bottom: none;
+        border-left: 1px solid #333;
+        border-right: 1px solid #333;
+      }
+      .modal-body textarea {
+        background: rgb(10, 10, 10);
+        color: #ebebeb;
+        width: 100%;
+        border-radius: 5px;
+        padding: 5px;
+        border: 1px solid #2e2e30;
+      }
+      .modal-body textarea:focus {
+        border: 1px solid rgba(245, 69, 0, 0.75);
+        background: rgb(5, 5, 5);
+        outline: none !important;
+      }
+      .modal-body textarea::placeholder {
+        color: #a8a8a8e8;
+        font-weight: 600;
+      }
+      .modal-body textarea::-moz-placeholder {
+        color: #a8a8a8e8;
+        font-weight: 600;
+      }
+      .modal-footer {
+        background-color: #111;
+        border-top: none;
+        border-bottom: 1px solid #333;
+        border-left: 1px solid #333;
+        border-right: 1px solid #333;
+      }
+      .modal-footer .close_reg_btn {
+        color: #000;
+        background-color: rgb(160, 160, 160);
+        border: 1px solid #2e2e30;
+        border-radius: 4px;
+        box-shadow: inset 0 0 1px 3px rgb(150, 150, 150);
+        transition: .2s;
+      }
+      .modal-footer .close_reg_btn:hover {
+        color: rgb(60, 60, 60);
+        background-color: rgb(1, 1, 1);
+        box-shadow: inset 0 0 2px 4px #000;
+        border: 1px solid #2e2e30;
+        border-radius: 4px;
+      }
+      .modal-footer .save_reg_btn {
+        color: #000;
+        background-color: rgb(185, 185, 185);
+        border: 1px solid #2e2e30;
+        border-radius: 4px;
+        transition: .2s;
+      }
+      .modal-footer .save_reg_btn:hover {
+        color: rgb(60, 60, 60);
+        background-color: rgb(1, 1, 1);
+        box-shadow: inset 0 0 2px 4px #000;
+        border: 1px solid #2e2e30;
+        border-radius: 4px;
+      }
+    .likes {
+      margin: 10px 1px !important;
     }
     .OP {
-      font-size: 1.1em;
+      font-size: .9em;
       color: #bbb;
       position: relative;
       bottom: 3px;
@@ -362,7 +524,95 @@
         let a = br.replace(re1, `<button class='smok'>`);
         let b = a.replace(re2, `</button>`);
         i.innerHTML = b;
-        });
-  } msg_func();
+      });
+    } msg_func();
   </script>
+  <script>
+    function clickRederBtn(e) {
+      let id = e.id;
+      let btn = document.getElementById(id);
+      let body = document.getElementById('body');
+      let modalWindow = document.createElement('div');
+      modalWindow.setAttribute('class', 'modal');
+      modalWindow.setAttribute('tabindex', '-1');
+      modalWindow.setAttribute('role', 'dialog');
+      modalWindow.innerHTML = `
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modal title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>Modal body text goes here.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary">Save changes</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+      `;
+      body.append(modalWindow);
+    }
+  </script>
+  <!--script>
+    document.querySelectorALL('.RegForm').addEventListener('click', function(e){ // Вешаем обработчик клика на UL, не LI
+      let id = e.target.id; // Получили ID, т.к. в e.target содержится элемент по которому кликнули
+      let btn = document.getElementById(id);
+      btn.innerHTML = 'Сохранить';
+      /*Я надеюсь никому не надо объяснять как работает "Отправить сообщение", 
+Но в этом чате довольно сложный синтаксис сообщений, тут нельзя просто ставить перенос строки к примеру.
+Поэтому тут вы познаете синтаксис этого чата!
+Но это не точно
+Для начала, скрепление двух элементов плюсиком "+".
+Что сделать перенос строки нудно поставить [+br+]
+Чтобы сделать сделать "невидимый текст",
+пример -> (Меня не видно))))
+нужно поставить #+! и !+# там где конец.
+По пашто это все возможности, надеюсь в будущем их будет больше!
+      
+      */
+      let msg = document.getElementById(btn.value);
+      let msg_text = msg.innerHTML;
+      let msg_height = msg.clientHeight;
+      let textarea = document.createElement('textarea');
+
+      let rebr = /\<br\>/g;
+      let br = msg_text.replace(rebr, `[br]`);
+
+      textarea.innerHTML = br;
+      textarea.id = btn.value;
+      textarea.setAttribute('name', "newText");
+      textarea.style.cssText = `min-height: ${msg_height}px;
+                                width: 98%;
+                                color: #fff;
+                                font-size: .85em;
+                                font-weight: 500;
+                                color: #fff;
+                                background: #000;
+                                border: none;
+                                transition: .2s;`;
+      textarea.onfocus = function(){
+        textarea.style.cssText = `
+          outline: none;
+          border: 2px solid yellowgreen;
+          min-height: ${msg_height}px;
+          width: 98%;
+          color: #fff;
+          font-size: .85em;
+          font-weight: 500;
+          color: #fff;
+          background: #000;
+        `;
+
+      }
+
+      let mag = msg.parentNode.replaceChild(textarea, msg);
+      btn.setAttribute('type', 'submit');
+    });
+  </script!-->
+</div>
 {% end %}

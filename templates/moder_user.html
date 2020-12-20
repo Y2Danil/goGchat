@@ -62,7 +62,7 @@
               <form method="post" action="/addAva">
                 <input type="hidden" name="url" id='url' value='{{ request.path }}'>
                 <button type="submit" name="newAva" value='{{a}}'>
-                  <img src="static/avatar/{{a}}" style='width: 100px; height: 100px; '>
+                  <img src="static/avatar/{{a}}" class='newAvaImg' style='width: 100px; height: 100px; '>
                 </button>
                 {% module xsrf_form_html() %}
               </form>
