@@ -111,10 +111,11 @@ class Rubric(Chat):
     col_msg = re.search(r"(\/\d+)", col_msg.group(0))
     col_stranich = []
     
-    if self.key():
+    if self.key() != None and len(self.key()) == 8:
       key = self.key()
     else:
-      key = None
+      key = b'keyIdiot'
+      
     if rubric[4] != -10:
       if self.current_user:
         user_info = po.select_user_po_name(self.current_user.decode())[0]
@@ -168,7 +169,7 @@ class Rubric(Chat):
             user_ava = self.static_url(f'avatar/{user_ava}')
             if theme[9]:
               try:
-                m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+                m[1] = he.deshifr(m[1], key).decode('utf-8')
               except UnicodeDecodeError:
                 pass
             else:
@@ -225,6 +226,10 @@ class Rubric(Chat):
                 break
     
           messages = messages[srez['start']:srez['end']]
+        
+        # if self.get_secure_cookie('key') == None or len(self.get_secure_cookie('key')) != 8:
+        #   self.set_secure_cookie('key', b'keyIdiot')
+        #   self.key = self.get_secure_cookie('key')
           
         for m in messages:
           index = messages.index(m)
@@ -235,15 +240,34 @@ class Rubric(Chat):
           m.append(user)
           user_ava = user[6]
           user_ava = self.static_url(f'avatar/{user_ava}')
+          
           try:
-            m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+            m[1] = he.deshifr(m[1], key).decode('utf-8')
           except UnicodeDecodeError:
             pass
           m.append(user_ava)
+          
+          likes = po.select_like_msg(m[0])
+          like_user = []
+            
+          for l in likes:
+            user = po.select_user_po_id(l[1])[0]
+            like_user.append(user[1])
+          m.append(like_user)
+            
           messages[index] = m
           
         messages = sorted(messages, key=lambda x: int(x[0]))
-        self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key, col_stranich=col_stranich, col_msg=col_msg.group(0)[1:], len_msgs=copy_len_msgs)
+        
+        self.render('templates/rubric.html', 
+                    messages=messages,
+                    rubric=rubric,
+                    rubric_id=rubric_id,
+                    temp=self.temp,
+                    key=self.key,
+                    col_stranich=col_stranich,
+                    col_msg=col_msg.group(0)[1:],
+                    len_msgs=copy_len_msgs)
     else:
       messages = po.select_theme_messages(rubric_id)
       len_msgs = len(messages)
@@ -281,6 +305,11 @@ class Rubric(Chat):
               break
     
         messages = messages[srez['start']:srez['end']]
+        
+      # if self.get_secure_cookie('key') == None or len(self.get_secure_cookie('key')) != 8:
+      #   self.set_secure_cookie('key', b'keyIdiot')
+      #   self.key = self.get_secure_cookie('key')
+          
       for m in messages:
         index = messages.index(m)
         m = list(m)
@@ -291,11 +320,21 @@ class Rubric(Chat):
         user_ava = user[6]
         user_ava = self.static_url(f'avatar/{user_ava}')
         try:
-          m[1] = he.deshifr(m[1], self.key()).decode('utf-8')
+          m[1] = he.deshifr(m[1], key).decode('utf-8')
         except UnicodeDecodeError:
           pass
         m.append(user_ava)
+        
+        likes = po.select_like_msg(m[0])
+        like_user = []
+            
+        for l in likes:
+          user = po.select_user_po_id(l[1])[0]
+          like_user.append(user[1])
+        m.append(like_user)  
+          
         messages[index] = m
+      
         
       messages = sorted(messages, key=lambda x: int(x[0]))
       self.render('templates/rubric.html', messages=messages, rubric=rubric, rubric_id=rubric_id, temp=self.temp, key=key, col_stranich=col_stranich, col_msg=col_msg.group(0)[1:], len_msgs=copy_len_msgs)
@@ -515,7 +554,12 @@ class AddAva(UserAcc):
       self.redirect(redic);
     except:
       pass
-
+    
+class ClearCookie(MainHandler):
+  @tornado.gen.coroutine
+  def get(self):
+    self.clear_all_cookies()
+    self.redirect('/')
     
 class ImportRegister(MainHandler):
   get = lambda self: self.render('templates/register.html', temp=self.temp)
@@ -556,7 +600,8 @@ class Login(MainHandler):
       self.redirect('/log')
   
 class Logout(MainHandler):
-  async def get(self):
+  @tornado.gen.coroutine
+  def get(self):
     self.clear_cookie("user")
     self.redirect("/")
     
@@ -582,6 +627,7 @@ class Application(tornado.web.Application):
       (r"/log", ImportLogin),
       (r"/login", Login),
       (r"/logout", Logout),
+      (r"/clearCookie", ClearCookie),
       (r"/admin", adm.MainAdmin),
     ]
     

@@ -28,33 +28,27 @@
           <div class='user_info' style='display: flex;'>
             <img class="img-fluid" style='width: 60px; height: 60px;' src="{{ m[6] }}">
             <div>
-              {% if current_user %}
-                {% if m[5][3] or m[5][5] %}
-                  {% if m[5][3] %}
-                    <string class='user_name'>
-                      <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none;' class='admin'>{{m[5][1]}}</a>
-                    </string>
-                  {% else %}
+              {% if m[5][3] or m[5][5] %}
+                {% if m[5][3] %}
                   <string class='user_name'>
-                    <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none;' class='moder'>{{m[5][1]}}</a>
+                    <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none;' class='admin'>{{m[5][1]}}</a>
                   </string>
-                  {% end %}
                 {% else %}
-                  <string class='user_name'>{{m[5][1]}}</string>
+                  <string class='user_name'>
+                    <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none; color: #999;' class='moder'>{{m[5][1]}}</a>
+                  </string>
                 {% end %}
               {% else %}
-                {% if m[5][3] or m[5][5] %}     
-                  {% if m[5][3] %}
-                    <string class='user_name'>
-                      <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none;' class='admin'>{{m[5][1]}}</a>
-                    </string>
-                  {% else %}
+                {% if m[5][8] %}
                   <string class='user_name'>
-                    <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none;' class='moder'>{{m[5][1]}}</a>
+                    <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none; font-weight: 300; color: "{{m[5][8]}}"'>{{m[5][1]}}</a>
                   </string>
-                  {% end %}
+                {% else %}
+                  <string class='user_name'>
+                    <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none; color: #999; font-weight: 300;'>{{m[5][1]}}</a>
+                  </string>
                 {% end %}
-              {% end %}
+            {% end %}
                 <br style='line-height: 0%; display: block; margin: 0px 0; content: " ";'>
                 <span class='OP'>Опыт:
                   {% if m[5][4] >= 0 %}
@@ -66,15 +60,17 @@
             </div>
           </div>
           <p class='msg_text' id="msg_test_id_{{ika}}">{{ m[1] }}</p>
-          {% if m[5][1] == current_user.decode('utf-8') %}
-            <button type='button' class='regBtn' id='Btn-{{ika}}' value='msg_test_id_{{ika}}' data-toggle="modal" data-target="#exampleModal{{ika}}">edit</button>
-            <!-- <form id='form_reder_id_{{ika}}' class='RegForm' method="post" action="/rederMsg">
-              
-              <input type="hidden" name="msg_id" value='{{m[0]}}'>
-              <input type="hidden" name="reder" value='{{request.path}}'>
-              <button type="submit" style='width: 0.1px; height: 0.1px; opacity: 0;' disabled></button> -->
-              <!-- <button type='button' class='regBtn' id='Btn-{{ika}}' value='msg_test_id_{{ika}}'>редактировать</button>
-            </form-->
+          {% if current_user %}
+            {% if m[5][1] == current_user.decode('utf-8') %}
+              <button type='button' class='regBtn' id='Btn-{{ika}}' value='msg_test_id_{{ika}}' data-toggle="modal" data-target="#exampleModal{{ika}}">edit</button>
+              <!-- <form id='form_reder_id_{{ika}}' class='RegForm' method="post" action="/rederMsg">
+                
+                <input type="hidden" name="msg_id" value='{{m[0]}}'>
+                <input type="hidden" name="reder" value='{{request.path}}'>
+                <button type="submit" style='width: 0.1px; height: 0.1px; opacity: 0;' disabled></button> -->
+                <!-- <button type='button' class='regBtn' id='Btn-{{ika}}' value='msg_test_id_{{ika}}'>редактировать</button>
+              </form-->
+            {% end %}
           {% end %}
           <div class="modal fade" id="exampleModal{{ika}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">

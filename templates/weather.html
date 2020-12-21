@@ -3,3 +3,23 @@
 {% block content %}
   <strong class="display-1">{{ temp }}</strong>
 {% end %}
+
+{% else %}
+                {% if m[5][3] or m[5][5] %}     
+                  {% if m[5][3] %}
+                    {% if m[5][8] %}
+                      <string class='user_name'>
+                        <a href="/userAcc-{{m[5][0]}}" color='{{m[5][8]}}' style='text-decoration: none; font-weight: 300;' class='admin'>{{m[5][1]}}</a>
+                      </string>
+                    {% else %}
+                    <string class='user_name'>
+                      <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none; font-weight: 300;' class='admin'>{{m[5][1]}}</a>
+                    </string>
+                    {% end %}
+                  {% else %}
+                    <string class='user_name'>
+                      <a href="/userAcc-{{m[5][0]}}" style='text-decoration: none;' class='moder'>{{m[5][1]}}</a>
+                    </string>
+                  {% end %}
+                {% end %}
+              {% end %}

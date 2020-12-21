@@ -50,6 +50,10 @@ class poSQL:
     with self.con:
       return self.cur.execute("""UPDATE "User" SET ava=%s WHERE name=%s""", (new_ava, name))
     
+  def update_status_by_id(self, id, status):
+    with self.con:
+      return self.cur.execute("""UPDATE "User" SET status=%s WHERE id=%s""", (status, id))
+    
   def check_user(self, name, password):
     with self.con:
       self.cur.execute("""SELECT name, password, admin FROM "User" WHERE name=%s and password=%s""", (name, password))
