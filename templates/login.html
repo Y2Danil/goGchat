@@ -9,12 +9,12 @@
     <form method="post" action="/login" class='login_form col-11 col-lg-8'>
         <strong class='display-3 Login'>Авторизация</strong>
         <div class='user_name' id='div_username'>
-            <span class=''>username&nbsp;&nbsp;</span>
-            <input type="text" name='username' id='username' class=''>
+            <!-- <span class=''>username&nbsp;&nbsp;</span> -->
+            <input type="text" name='username' id='username' placeholder='Ник'>
         </div>
         <div class='password' id='div_password'>
-            <span class=''>password&nbsp;&nbsp;</span>
-            <input type="password" name='password' id='password' class=''>
+            <!-- <span class=''>password&nbsp;&nbsp;</span> -->
+            <input type="password" name='password' id='password' placeholder="Пароль">
         </div>
         <button type="submit" class='btn-login'>Отправить</button> {% module xsrf_form_html() %}
     </form>
@@ -32,7 +32,7 @@
         margin: 0 auto;
     }
     .login_form * {
-        margin: 5px 0;
+        margin: 3px 0;
     }
     .login_form div {
         display: flex;
@@ -40,46 +40,65 @@
     }
     .login_form input {
         background: rgb(15, 15, 15);
-        border: none;
-        font-family: 'Play', sans-serif;
+        border: 1px solid rgb(46, 46, 46);
+        /*font-family: 'Play', sans-serif;*/
         font-weight: 400;
-        color: #006905;
-        width: 100%;
+        color: #bbb;
+        width: 80%;
+        padding: 5px 7px;
+        padding-left: 10px;
+        transition: .2s;
+        font-size: 1.1em;
     }
-    .login_form input:focus {
+    .login_form input[name='username']:focus {
         outline: none;
+        color: #fff;
+        border: 1px solid rgb(17, 0, 253);
+        padding-left: 5px;
+        border-radius: 3px;
     }
-    .login_form span {
+    .login_form input[name='password']:focus {
+        outline: none;
+        color: #fff;
+        border: 1px solid rgb(0, 236, 253);
+        padding-left: 5px;
+        border-radius: 3px;
+    }
+    /*.login_form span {
         font-family: 'Play', sans-serif;
         font-weight: 700;
         font-size: 16px;
         color: #888;
-    }
-    .user_name {
+    }*/
+    /*.user_name {
         background: rgb(15, 15, 15);
         border: 1px solid rgb(46, 46, 46);
     }
     .password {
         background: rgb(15, 15, 15);
         border: 1px solid rgb(46, 46, 46);
-    }
+    }*/
     .btn-login {
+        position: relative;
         background: rgb(10, 10, 10);
         border: 1px solid rgb(46, 46, 46);
         color: #888;
         transition: .2s;
-        font-family: 'Play', sans-serif;
-        font-weight: 700;
+        /*font-family: 'Play', sans-serif;*/
+        font-weight: 500;
         font-size: 16px;
         padding: 5px;
+        left: 5px;
+        top: 7px;
     }
     .btn-login:hover {
         border: 1px solid rgb(3, 82, 0);
         color: rgb(3, 82, 0);
+        border-radius: 3px;
     }
 </style>
 
-<script>
+<!-- <script>
     username.onclick = function() {
         el_user = document.getElementById('div_username');
         el_pass = document.getElementById('div_password');
@@ -98,6 +117,6 @@
         el_user.style.cssText=` border: 1px solid rgb(46, 46, 46);
         `;
     }
-    </script>
+    </script> -->
     
 {% end %}
