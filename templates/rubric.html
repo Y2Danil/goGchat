@@ -530,7 +530,6 @@
 
         let HTTPsear = m.match(/\[href="http(?!s)\:\/\/.*"\].*\[\/href\]/g);
         if(HTTPsear != null){
-          alert(HTTPsear);
           if(HTTPsear.length > 1){
             HTTPsear.forEach(jj => {
               let aa = jj.replace(/\[href="http(?!s)\:\/\//g, `<a class='linkHttp' href="http:\/\/`);
@@ -549,7 +548,6 @@
 
         let searHttps = m.match(/\[href="https\:\/\/.*"\].*\[\/href\]/g);
         if(searHttps != null){
-          alert(searHttps);
           if(searHttps.length > 1){
             searHttps.forEach(j => {
               let a = j.replace(/\[href="https:\/\//g, `<a class='httpsLink' href="https:\/\/`);
@@ -564,11 +562,7 @@
             let c = b.replace(/\"]/g, `">`);
             m = m.replace(searHttps[0], c);
           }
-        } 
-
-        
-        // let b = a.replace(strelka_lef_end, `</`);
-        //let c = a.replace(strelka_lef_end, `</a>`);
+        }
         let br = m.replace(rebr, `<br>`);
         let r = br.replace(re1, `<button class='smok'>`);
         let result = r.replace(re2, `</button>`);
