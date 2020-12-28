@@ -513,20 +513,69 @@
       let all_message = document.getElementsByClassName('message');
       let all_text = document.querySelectorAll("p.msg_text");
       all_text.forEach(i => {
-        let j = i.innerHTML;
-        let m = j.toString();
+        let t = i.innerHTML;
+        let m = t.toString();
         
         let re = /#!.+!#/g;
         let re1 = /#!/g;
         let re2 = /!#/g;
         let rebr = /\[br\]/g;
+        let a_start = /\[href="http.*"\].*\[\/href\]/g;
+        let strelka_lef = /\[a href=".*"(?!.*)]/g;
+        let strelka_lef_end = /\[\/href]/g;
+        let gg = /\[href/g;
+        let strelka_right = /\]/g;
+        let a_end = /\[\/href\]/g;
+
+
+        let HTTPsear = m.match(/\[href="http(?!s)\:\/\/.*"\].*\[\/href\]/g);
+        if(HTTPsear != null){
+          alert(HTTPsear);
+          if(HTTPsear.length > 1){
+            HTTPsear.forEach(jj => {
+              let aa = jj.replace(/\[href="http(?!s)\:\/\//g, `<a class='linkHttp' href="http:\/\/`);
+              let bb = aa.replace(/\[\/href\]/g, `</a>`);
+              let cc = bb.replace(/\"]/g, `">`);
+              m = m.replace(jj, cc);
+              // m.replace(l, b);
+            });
+          } else {
+            let aa = HTTPsear[0].replace(/\[href="http(?!s)\:\/\//g, `<a class='linkHttp' href="http:\/\/`);
+            let bb = aa.replace(/\[\/href\]/g, `</a>`);
+            let cc = bb.replace(/\"]/g, `">`);
+            m = m.replace(HTTPsear[0], cc);
+          }
+        } 
+
+        let searHttps = m.match(/\[href="https\:\/\/.*"\].*\[\/href\]/g);
+        if(searHttps != null){
+          alert(searHttps);
+          if(searHttps.length > 1){
+            searHttps.forEach(j => {
+              let a = j.replace(/\[href="https:\/\//g, `<a class='httpsLink' href="https:\/\/`);
+              let b = a.replace(/\[\/href\]/g, `</a>`);
+              let c = b.replace(/\"]/g, `">`);
+              m = m.replace(j, c);
+              // m.replace(l, b);
+            });
+          } else {
+            let a = searHttps[0].replace(/\[href="https:\/\//g, `<a class='httpsLink' href="https:\/\/`);
+            let b = a.replace(/\[\/href\]/g, `</a>`);
+            let c = b.replace(/\"]/g, `">`);
+            m = m.replace(searHttps[0], c);
+          }
+        } 
+
+        
+        // let b = a.replace(strelka_lef_end, `</`);
+        //let c = a.replace(strelka_lef_end, `</a>`);
         let br = m.replace(rebr, `<br>`);
-        let a = br.replace(re1, `<button class='smok'>`);
-        let b = a.replace(re2, `</button>`);
-        i.innerHTML = b;
+        let r = br.replace(re1, `<button class='smok'>`);
+        let result = r.replace(re2, `</button>`);
+        i.innerHTML = result;
       });
-    } msg_func();
-  </script>
+    } msg_func()
+   </script>
   <script>
     function clickRederBtn(e) {
       let id = e.id;

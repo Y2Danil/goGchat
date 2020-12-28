@@ -111,6 +111,7 @@ class Rubric(Chat):
     col_msg = re.search(r"(\/\d+)", col_msg.group(0))
     col_stranich = []
     
+    print(self.key)
     if self.key() != None and len(self.key()) == 8:
       key = self.key()
     else:
@@ -241,10 +242,11 @@ class Rubric(Chat):
           user_ava = user[6]
           user_ava = self.static_url(f'avatar/{user_ava}')
           
-          try:
-            m[1] = he.deshifr(m[1], key).decode('utf-8')
-          except UnicodeDecodeError:
-            pass
+          if rubric[9]:
+            try:
+              m[1] = he.deshifr(m[1], key).decode('utf-8')
+            except UnicodeDecodeError:
+              pass
           m.append(user_ava)
           
           likes = po.select_like_msg(m[0])
@@ -319,10 +321,14 @@ class Rubric(Chat):
         m.append(user)
         user_ava = user[6]
         user_ava = self.static_url(f'avatar/{user_ava}')
-        try:
-          m[1] = he.deshifr(m[1], key).decode('utf-8')
-        except UnicodeDecodeError:
-          pass
+        print(rubric[9])
+        if rubric[9]:
+          try:
+            m[1] = he.deshifr(m[1], key).decode('utf-8')
+          except UnicodeDecodeError:
+            pass
+        else:
+          m[1] = m[1].decode('utf-8')
         m.append(user_ava)
         
         likes = po.select_like_msg(m[0])

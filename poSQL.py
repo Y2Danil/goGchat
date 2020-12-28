@@ -160,5 +160,9 @@ class poSQL:
     with self.con:
       return self.cur.execute("""UPDATE "User" SET op=op+%s WHERE name=%s""", (int(op), user_name))
     
+  def add_like(self, user_id, msg_id):
+    with self.con:
+      return self.cur.execute("""UPDATE "User" SET op=op+%s WHERE name=%s""", (int(op), user_name))
+    
   def close(self):
     return self.con.close()
