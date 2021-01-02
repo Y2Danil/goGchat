@@ -1,0 +1,46 @@
+{{ define "index" }}
+{{ template "header" }}
+<main class="col-lg-9 content-container">
+  <!-- Основной контент страницы  -->
+  {{range $k, $v := .}}
+    <div class='TypeAndTheme'>
+      <h2 class='h1' style='color: #ccc; font-weight: 600;'>{{$k}}</h2>
+      {{range .}}
+        <div class='ThemeDiv'>
+          <h1 class='typeTitle'>
+            <a href='/theme/{{.ID}}/'>{{.Title}}</a>
+          </h1>
+          <span>{{.MiniDop}}</span>
+        </div>
+      {{else}}
+        <strong>:(((</strong>
+      {{end}}
+    </div>
+  {{else}}
+    <h1 class="typeTitle">Пусто(((</h1>
+  {{end}}
+  <style>
+    .typeTitle {
+      color: #ddd;
+    }
+    .ThemeDiv {
+      border-top: 1px solid #aaa;
+      border-bottom: 1px solid #aaa;
+      margin-bottom: 10px;
+      margin-top: 10px;
+      padding: 5px 10px;
+    }
+    .ThemeDiv h1 a {
+      text-decoration: None;
+      color: #fff;
+    }
+    .ThemeDiv h1 a:hover {
+      color: #ccc;
+    }
+    .TypeAndTheme {
+      margin-bottom: 20px;
+    }
+  </style>
+</main>
+{{ template "footer" }}
+{{ end }}

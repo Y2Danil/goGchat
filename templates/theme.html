@@ -1,0 +1,60 @@
+{{ define "theme" }}
+{{ template "header" }}
+<main class="col-lg-9 content-container">
+  <!-- Основной контент страницы  -->
+  <h1 style='margin-left: 5px;'>{{ .ThemeInfo.Title }}</h1>
+  <div>
+    {{range .Messages}}
+      <div class="Message">
+        <div class='UserInfo'>
+          {{range .UserInfo}}
+            <div style="margin-right: 5px;">
+              <img src="/static/avatar/{{.Ava}}" style='width: 65px; height: 65px;'>
+            </div>
+            <div>
+              <h3 class='UserName' style="color: {{.Color}}">{{.Name}}</h3>
+              <span style='font-size: .95em;'> 
+                <span>Опыт:</span>
+                <span style='color: rgb(16, 136, 0);'>{{.Op}}</span>
+              </span>
+            </div>
+          {{else}}
+            <strong>
+              ???
+            </strong>
+          {{end}}
+        </div>
+        <div class="ContentMsg">
+          <p style='color: #fff;'>{{.TextMsg}}</p>
+        </div>
+      </div>
+    {{else}}
+      <h1>Пусто:(((</h1>
+    {{end}}
+  </div>
+
+  <style>
+    .Message {
+      border-top: 1px solid #aaa;
+      border-bottom: 1px solid #aaa;
+      padding: 10px 5px;
+      min-height: 160px;
+    }
+    .UserInfo {
+      display: flex;
+      margin-bottom: 5px;
+      background-color: rgb(10, 10, 10);
+      border-radius: 5px;
+      padding: 5px;
+    }
+    .UserName {
+      margin-bottom: 0;
+      font-size: 1.4em;
+    }
+    .ContentMsg p {
+      font-size: 16px;
+    }
+  </style>
+</main>
+{{ template "footer" }}
+{{ end }}

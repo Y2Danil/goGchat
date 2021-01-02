@@ -1,0 +1,150 @@
+{{ define "footer" }} 
+      <footer style='margin-top: 200px !important;'>
+        <div class="footer-copyright text-center py-3">
+          <a href="https://t.me/govnoChat_bot" class='telebot_href'><br>Получайте уведомления через нашего teleБота</a>
+        </div>
+      </footer>
+    </div>
+  </div>
+</div>
+<style>
+  a.httpsLink {
+    color: rgb(0, 255, 179);
+  }
+  a.httpsLink:hover {
+    color: rgb(0, 179, 119);
+  }
+  a.httpsLink:focus {
+    color: rgb(177, 0, 201);
+  }
+  a.linkHttp {
+    color: rgb(231, 0, 0);
+  }
+  a.linkHttp:hover {
+    color: rgb(184, 0, 0);
+  }
+  a.linkHttp:focus {
+    color: rgb(165, 66, 0);
+  }
+  * * {
+    font-family: 'Rubik', sans-serif;
+    color: #bbb;
+  }
+  body {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: black;
+  }
+  .container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .dropdown-menu > strong {
+    font-size: 24px;
+  }
+  .content-container {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+    background: rgb(0, 0, 0);
+  }
+  .aside {
+    background-color: black;
+  } 
+  .telebot_href {
+    color: rgb(18, 101, 112);
+  }
+  .telebot_href:hover {
+    color: rgb(13, 74, 82);
+  }
+  .telebot_href:focus {
+    color: rgb(84, 12, 94);
+  }
+  @media (max-width: 768px) {
+    .navbar-brand {
+      font-size: 36px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+  }
+  @media (min-width: 768px) {
+    .navbar-brand {
+      font-size: 42px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+  }
+  @media (max-width: 992px) {
+    #navbar > ul > li {
+      padding-left: 10px;
+    }
+    .aside {
+      padding: 0 10px;
+    }
+  }
+
+  @media (min-width: 992px) {
+      .aside {
+        border-right: 1px solid white;
+      }
+      .content-container {
+        padding-top: 15px;
+      }
+      .navbar-container {
+        position: sticky;
+        top: 0;
+        overflow-y: auto;
+        height: 100vh;
+      }
+      .navbar-container .navbar {
+        align-items: flex-start;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        flex-direction: column;
+        height: 100%;
+      }
+      .navbar-container .navbar-collapse {
+        align-items: flex-start;
+      }
+      .navbar-container .nav {
+        flex-direction: column;
+        flex-wrap: nowrap;
+      }
+      .navbar-container .navbar-nav {
+        flex-direction: column !important;
+      }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+
+  <script>
+    new Vue({
+      el: '#navbarBrand',
+      data: {
+        el: document.getElementById("navbarBrand"),
+        revers_css: false,
+        css_span1: 'color: red;',
+        css_span2: 'color: white;'
+      },
+      methods: {
+        Brand: function (event) {
+          let govno = this.el.querySelector('span.govno');
+          let chat = this.el.querySelector('span.chat');
+          this.revers_css = !this.revers_css;
+          if(this.revers_css){
+            this.css_span1 = 'color: white;';
+            this.css_span2 = 'color: red;';
+          } else {
+            this.css_span1 = 'color: red;';
+            this.css_span2 = 'color: white;';
+          }
+        },
+        RedirectBase: function (event) {
+          location.href = '/';
+        }
+      }
+    });
+  </script>
+</body>
+</html>
+{{ end }}

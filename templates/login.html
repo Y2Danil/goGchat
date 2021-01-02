@@ -1,0 +1,14 @@
+{{ define "login" }}
+{{ template "header" }}
+<main class="col-lg-9 content-container">
+  <div>
+    <form method="post" action="/authtorization/">
+      <input type="text" placeholder="Ник" name='Nik'>
+      <input type="password" placeholder="Пароль" name='Pass'>
+      <input type="hidden" name="sicretKey" value="aHf5FsFd93f3232trfhGbSDW82bHsicL">
+      <button type="submit">Отправить</button>
+    </form>
+  </div>
+</main>
+{{ template "footer" }}
+{{ end }}
