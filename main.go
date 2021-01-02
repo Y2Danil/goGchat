@@ -93,7 +93,7 @@ type DeshifrMessage struct {
 }
 
 func conn() *sql.DB {
-	conn := fmt.Sprint("user=fldyqnxcgmlctw password=d86ddbb94a3059ab90cea9bb58432f1e4150a85bfbd440cd1fa8b9ecd45a8618 host=ec2-54-76-215-139.eu-west-1.compute.amazonaws.com port=5432 dbname=db85a48j30fvr sslmode=require")
+	conn := fmt.Sprint("user=ijvqxpzulogxyt password=c118cf0739abbc357614cb5cb38dc84f8ae08fcc331e20f1725f224270ace732 host=ec2-46-137-79-235.eu-west-1.compute.amazonaws.com port=5432 dbname=d655kmienbsq13 sslmode=require")
 	db, err := sql.Open("postgres", conn)
 
 	if err != nil {
