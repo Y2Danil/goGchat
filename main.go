@@ -23,12 +23,6 @@ type Config struct {
 	SecritCookie string
 }
 
-// DataTaDM Словарь для хранения Theme и DeshifrMsg, TaMD - Theme and DeshifrMsg
-type DataTaDM struct {
-	ThemeInfo Theme
-	Messages  []DeshifrMessage
-}
-
 // User класс пользователя
 type User struct {
 	ID       int
@@ -40,8 +34,6 @@ type User struct {
 	Ava      string
 	Status   string
 	Color    string
-	Teleg    bool
-	TelegID  int
 }
 
 // LoginUser - авторизация
@@ -150,7 +142,7 @@ func getUsers(sqlCode string) []User {
 
 	for value.Next() {
 		u := User{}
-		err := value.Scan(&u.ID, &u.Name, &u.Password, &u.Admin, &u.Op, &u.Moder, &u.Ava, &u.Status, &u.Color, &u.Teleg, &u.TelegID)
+		err := value.Scan(&u.ID, &u.Name, &u.Password, &u.Admin, &u.Op, &u.Moder, &u.Ava, &u.Status, &u.Color)
 
 		if err != nil {
 			fmt.Println(err)
@@ -273,7 +265,8 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, err.Error())
 	}
 
-	session, _ := store.Get(r, "User")
+	var session *sessions.Session
+	session, _ = store.Get(r, "User")
 
 	fmt.Printf("\n\n\n")
 	fmt.Println(session.Values["Name"])
@@ -295,14 +288,53 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 	if Messages != nil {
 		for i := range Messages {
 			TextMsg := bytes.NewBuffer(Messages[i].TextMsg).String()
-			UserInfo := getUsers(fmt.Sprintf("SELECT * FROM \"User\" WHERE id=%d", Messages[i].UserID))
+			UserInfo := getUsers(fmt.Sprintf("SELECT id, name, password, admin, op, moder, ava, status, color FROM \"User\" WHERE id=%d", Messages[i].UserID))
 			Msg := DeshifrMessage{Messages[i].ID, TextMsg, Messages[i].UserID, Messages[i].ThemeID, Messages[i].PubDate, UserInfo}
 			DeshifrMessages = append(DeshifrMessages, Msg)
 		} 
 	}
 
-	data := DataTaDM{ThemeInfo: ThemeInfo, Messages: DeshifrMessages}
-	fmt.Println(data.Messages)
+	// DataTaDM Словарь для хранения Theme и DeshifrMsg, TaMD - Theme and DeshifrMsg
+
+	session, _ := store.Get(r, "User")
+	UserName := session.Values["Name"]
+	var data interface{}
+	if UserName == nil {
+		type DataTaDM struct {
+			ThemeInfo Theme
+			Messages  []DeshifrMessage
+			User      interface{}
+		}
+
+		data = DataTaDM{ThemeInfo: ThemeInfo, Messages: DeshifrMessages, User: nil}
+	} else {
+		type UserCookie struct {
+			Name interface{}
+			OP   interface{}
+			ID   interface{}
+		}
+		type DataTaDM struct {
+			ThemeInfo Theme
+			Messages  []DeshifrMessage
+			User 			UserCookie
+		}
+
+		cookieUserName := session.Values["Name"]
+		Name := cookieUserName
+		OP := session.Values["OP"]
+
+		data = DataTaDM{
+			ThemeInfo: ThemeInfo,
+			Messages: DeshifrMessages,
+			User: UserCookie{
+				Name:  Name,
+				OP: 	 OP,
+				ID:    session.Values["ID"],
+			},
+		}
+	}
+	fmt.Println(data)
+	
 
 	tmpl, err := template.ParseFiles("templates/theme.html", "templates/header.html", "templates/footer.html")
 
@@ -310,6 +342,7 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, err.Error())
 	}
 
+	fmt.Println(r.Host)
 	tmpl.ExecuteTemplate(w, "theme", data)
 }
 
@@ -345,9 +378,10 @@ func Loginka(w http.ResponseWriter, r *http.Request) {
 
 		type CheckNameAndPassword struct {
 			ID int
+			OP int
 		}
 
-		sqlCode := fmt.Sprintf("SELECT id FROM \"User\" WHERE name='%s' AND password='%s';", data.Name, data.Password)
+		sqlCode := fmt.Sprintf("SELECT id, op FROM \"User\" WHERE name='%s' AND password='%s';", data.Name, data.Password)
 		fmt.Println(sqlCode)
 
 		db := conn()
@@ -361,7 +395,7 @@ func Loginka(w http.ResponseWriter, r *http.Request) {
 		CheckUser := []CheckNameAndPassword{}
 		for User.Next() {
 			u := CheckNameAndPassword{}
-			err := User.Scan(&u.ID)
+			err := User.Scan(&u.ID, &u.OP)
 	
 			if err != nil {
 				fmt.Println(err)
@@ -376,20 +410,53 @@ func Loginka(w http.ResponseWriter, r *http.Request) {
 		if len(CheckUser) == 1 {
 			session, _ := store.Get(r, "User")
 			session.Values["Name"] = data.Name
+			session.Values["OP"] = CheckUser[0].OP
+			session.Values["ID"] = CheckUser[0].ID
 			err := session.Save(r, w)
 			fmt.Print(">>>>")
 			fmt.Println(session.Values["Name"])
+			fmt.Println(session.Values["OP"])
 
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			http.Redirect(w, r, "/", http.StatusSeeOther)
 		} else {
-
+			http.Redirect(w, r, "/login/", http.StatusSeeOther)
 		}
 	}
 
-	http.Redirect(w, r, "/login/", http.StatusSeeOther)
+	
+}
+
+func ClearCookie(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "User")
+	session.Options.MaxAge = -1
+
+	err := session.Save(r, w)
+
+	if err != nil {
+		log.Fatal("failed to delete session", err)
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func AddMsg(w http.ResponseWriter, r *http.Request) {
+	userID := r.FormValue("userID")
+	themeID := r.FormValue("themeID")
+	msgText := r.FormValue("MsgText")
+
+	db := conn()
+	t := time.Now()
+	sqlCode := fmt.Sprintf("INSERT INTO \"Message\"(text, user_id, rubric_id, pub_date) VALUES ('%s', %s, %s, '%s')", msgText, userID, themeID, t.Format(time.RFC3339))
+	fmt.Println(sqlCode)
+	db.Query(sqlCode)
+	// Vars := mux.Vars(r)
+	// w.WriteHeader(http.StatusOK)
+
+	// redic := Vars["redic"]
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
 func handleRequest() {
@@ -398,7 +465,9 @@ func handleRequest() {
 	rtr.HandleFunc("/theme/{id:[0-9]+}/", openTheme).Methods("GET")
 	rtr.HandleFunc("/login/", Login).Methods("GET")
 	rtr.HandleFunc("/authtorization/", Loginka).Methods("POST")
-
+	rtr.HandleFunc("/clearCookie/", ClearCookie).Methods("GET")
+	rtr.HandleFunc("/addMsg/", AddMsg).Methods("POST")
+	
 	http.Handle("/", rtr)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	// heroku con
@@ -407,6 +476,7 @@ func handleRequest() {
 		port = "9000"
 	}
 	http.ListenAndServe(":" + port, context.ClearHandler(http.DefaultServeMux))
+	//http.ListenAndServe(":8000", nil)
 }
 
 func main() {

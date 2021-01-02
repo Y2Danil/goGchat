@@ -2,13 +2,40 @@
 {{ template "header" }}
 <main class="col-lg-9 content-container">
   <div>
-    <form method="post" action="/authtorization/">
+    <h4 style='position: relative; left: 10px; color: #ccc;'>Войти</h4>
+    <form method="post" action="/authtorization/" class='authtorization'>
       <input type="text" placeholder="Ник" name='Nik'>
-      <input type="password" placeholder="Пароль" name='Pass'>
+      <input type="password" placeholder="Пароль" name='Pass'><br>
       <input type="hidden" name="sicretKey" value="aHf5FsFd93f3232trfhGbSDW82bHsicL">
-      <button type="submit">Отправить</button>
+      <button type="submit" class='loginSubmit'>Отправить</button>
     </form>
   </div>
+
+  <style>
+    .authtorization {
+      padding: 2px 10px;
+      width: 98%;
+    }
+    .authtorization input {
+      background-color: rgb(15, 15, 15);
+      border: 2px solid rgb(30, 30, 30);
+      width: 80%;
+      margin-bottom: 10px;
+      padding: 5px;
+      transition: .2s;
+    }
+    .authtorization input:focus {
+      outline: none;
+      box-shadow: 0 0 2px 1px rgb(148, 0, 0);
+      color: #ddd;
+    }
+    .authtorization .loginSubmit {
+      background-color: rgb(15, 15, 15);
+      border: 2px solid rgb(30, 30, 30);
+      padding: 5px;
+      color: #ccc;
+    }
+  </style>
 </main>
 {{ template "footer" }}
 {{ end }}

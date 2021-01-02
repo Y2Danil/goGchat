@@ -3,7 +3,7 @@
 <main class="col-lg-9 content-container">
   <!-- Основной контент страницы  -->
   <h1 style='margin-left: 5px;'>{{ .ThemeInfo.Title }}</h1>
-  <div>
+  <div class='MsgBlock'>
     {{range .Messages}}
       <div class="Message">
         <div class='UserInfo'>
@@ -14,7 +14,7 @@
             <div>
               <h3 class='UserName' style="color: {{.Color}}">{{.Name}}</h3>
               <span style='font-size: .95em;'> 
-                <span>Опыт:</span>
+                <span>Репутация:</span>
                 <span style='color: rgb(16, 136, 0);'>{{.Op}}</span>
               </span>
             </div>
@@ -31,14 +31,26 @@
     {{else}}
       <h1>Пусто:(((</h1>
     {{end}}
+
+    {{if ne .User nil}}
+      <div class='divAddMsg'>
+        <form method="post" action="/addMsg/">
+          <textarea name="MsgText" placeholder="Ваше сообщение"></textarea>
+          <input type="hidden" name="themeID" value="{{ .ThemeInfo.ID }}" readonly>
+          <input type="hidden" name="userID" value="{{ .User.ID }}" readonly>
+          <button type="submit" class='AddMsgButton'>Отправить</button>
+        </form>
+      </div>
+    {{end}}
   </div>
 
   <style>
     .Message {
-      border-top: 1px solid #aaa;
-      border-bottom: 1px solid #aaa;
+      border-top: 1px solid #888;
+      border-bottom: 1px solid #888;
       padding: 10px 5px;
       min-height: 160px;
+      margin-bottom: 20px;
     }
     .UserInfo {
       display: flex;
@@ -53,6 +65,57 @@
     }
     .ContentMsg p {
       font-size: 16px;
+    }
+    .MsgBlock {
+      margin-bottom: 10px;
+    }
+    .divAddMsg {
+      width: 100%;
+    }
+    .divAddMsg form {
+      width: 100%;
+    }
+    textarea[name="MsgText"] {
+      background-color: rgb(15, 15, 15);
+      border: 2px solid rgb(30, 30, 30);
+      border-radius: 3px;
+      width: 95%;
+      height: 200px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      margin-bottom: 10px;
+      transition: .2s;
+    }
+    textarea[name="MsgText"]:focus {
+      outline: none;
+      background-color: rgb(10, 10, 10);
+      border: 2px solid rgb(20, 20, 20);
+    }
+    textarea[name="MsgText"]::placeholder {
+      font-size: 18px;
+    }
+    textarea[name="MsgText"]::-moz-placeholder {
+      font-size: 18px;
+    }
+    .AddMsgButton {
+      background-color: rgb(15, 15, 15);
+      border: 2px solid rgb(30, 30, 30);
+      border-radius: 2px;
+      padding: 7px 0;
+      padding-left: 5px;
+      font-weight: 600;
+      text-align: left;
+      width: 95%;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .AddMsgButton:hover {
+      outline: none;
+      background-color: rgb(10, 10, 10);
+      border: 2px solid rgb(20, 20, 20);
+      color: #777;
     }
   </style>
 </main>

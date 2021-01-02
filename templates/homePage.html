@@ -4,10 +4,10 @@
   <!-- Основной контент страницы  -->
   {{range $k, $v := .}}
     <div class='TypeAndTheme'>
-      <h2 class='h1' style='color: #ccc; font-weight: 600;'>{{$k}}</h2>
+      <h2 class='h1' style='color: #ccc; font-weight: 600; font-size: 2em; position: relative; left: 10px;'>{{$k}}</h2>
       {{range .}}
         <div class='ThemeDiv'>
-          <h1 class='typeTitle'>
+          <h1 class='themeTitle'>
             <a href='/theme/{{.ID}}/'>{{.Title}}</a>
           </h1>
           <span>{{.MiniDop}}</span>
@@ -17,11 +17,12 @@
       {{end}}
     </div>
   {{else}}
-    <h1 class="typeTitle">Пусто(((</h1>
+    <h1 class="themeTitle">Пусто(((</h1>
   {{end}}
   <style>
-    .typeTitle {
+    .themeTitle {
       color: #ddd;
+      font-size: 1.8em;
     }
     .ThemeDiv {
       border-top: 1px solid #aaa;
