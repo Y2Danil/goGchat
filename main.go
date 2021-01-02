@@ -151,6 +151,8 @@ func getUsers(sqlCode string) []User {
 		Users = append(Users, u)
 	}
 
+	defer db.Close()
+	
 	return Users
 }
 
@@ -176,6 +178,8 @@ func getTypes(sqlCode string) []Type {
 		}
 		Types = append(Types, t)
 	}
+
+	defer db.Close()
 
 	return Types
 }
@@ -203,6 +207,8 @@ func getThemes(sqlCode string) []Theme {
 		Themes = append(Themes, t)
 	}
 
+	defer db.Close()
+
 	return Themes
 }
 
@@ -228,6 +234,8 @@ func getMessages(sqlCode string) []Message {
 		}
 		Messages = append(Messages, m)
 	}
+
+	defer db.Close()
 
 	return Messages
 }
@@ -421,8 +429,13 @@ func Loginka(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+
+			defer db.Close()
+
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 		} else {
+			defer db.Close()
+
 			http.Redirect(w, r, "/login/", http.StatusSeeOther)
 		}
 	}
@@ -456,6 +469,8 @@ func AddMsg(w http.ResponseWriter, r *http.Request) {
 	// w.WriteHeader(http.StatusOK)
 
 	// redic := Vars["redic"]
+	defer db.Close()
+
 	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
