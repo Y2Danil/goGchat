@@ -306,6 +306,8 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := store.Get(r, "User")
 	UserName := session.Values["Name"]
+	fmt.Print("UserName: ")
+	fmt.Println(UserName)
 	var data interface{}
 	if UserName == nil {
 		type DataTaDM struct {
@@ -315,6 +317,7 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 		}
 
 		data = DataTaDM{ThemeInfo: ThemeInfo, Messages: DeshifrMessages, User: nil}
+		fmt.Println("a")
 	} else {
 		type UserCookie struct {
 			Name interface{}
@@ -340,6 +343,7 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 				ID:    session.Values["ID"],
 			},
 		}
+		fmt.Println("b")
 	}
 	fmt.Println(data)
 	
