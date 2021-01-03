@@ -354,7 +354,6 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, err.Error())
 	}
 
-	fmt.Println(r.Host)
 	tmpl.ExecuteTemplate(w, "theme", data)
 }
 

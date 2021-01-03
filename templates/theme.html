@@ -36,8 +36,8 @@
       <div class='divAddMsg'>
         <form method="post" action="/addMsg/">
           <textarea name="MsgText" placeholder="Ваше сообщение"></textarea>
-          <input type="hidden" name="themeID" value="{{ .ThemeInfo.ID }}" readonly>
-          <input type="hidden" name="userID" value="{{ .User.ID }}" readonly>
+          <input type="hidden" name="themeID" value="{{ .ThemeInfo.ID }}">
+          <input type="hidden" name="userID" value="{{ .User.ID }}">
           <button type="submit" class='AddMsgButton'>Отправить</button>
         </form>
       </div>
