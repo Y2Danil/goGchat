@@ -32,18 +32,7 @@
       <h1>Пусто:(((</h1>
     {{end}}
 
-    {{if ne .User nil}}
-      <div class='divAddMsg'>
-        <form method="post" action="/addMsg/">
-          <textarea name="MsgText" placeholder="Ваше сообщение"></textarea>
-          <input type="hidden" name="themeID" value="{{ .ThemeInfo.ID }}" readonly>
-          <input type="hidden" name="userID" value="{{ .User.ID }}" readonly>
-          <button type="submit" class='AddMsgButton'>Отправить</button>
-        </form>
-      </div>
-    {{else}}
-      <div></div>
-    {{end}}
+    
   </div>
 
   <style>
