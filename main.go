@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	_ "github.com/lib/pq"
@@ -488,12 +489,12 @@ func handleRequest() {
 	http.Handle("/", rtr)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	// heroku con
-	// port := os.Getenv("PORT")
-	// if port == "" {
-	// 	port = "9000"
-	// }
-	// http.ListenAndServe(":" + port, context.ClearHandler(http.DefaultServeMux))
-	http.ListenAndServe(":8000", nil)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "9000"
+	}
+	http.ListenAndServe(":" + port, context.ClearHandler(http.DefaultServeMux))
+	//http.ListenAndServe(":8000", nil)
 }
 
 func main() {
