@@ -32,7 +32,7 @@
       <h1>Пусто:(((</h1>
     {{end}}
 
-    {{if ne .User nil}}
+    {{if .User}}
       <div class='divAddMsg'>
         <form method="post" action="/addMsg/">
           <textarea name="MsgText" placeholder="Ваше сообщение"></textarea>
