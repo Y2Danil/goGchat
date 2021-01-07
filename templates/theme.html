@@ -3,17 +3,25 @@
 <main class="col-lg-9 content-container">
   <!-- Основной контент страницы  -->
   <h1 style='margin-left: 5px;'>{{ .ThemeInfo.Title }}</h1>
+
+  <div style="margin-left: 5px; margin-bottom: 10px;">
+    <form method="post" action="/heKey/" class="heKey">
+      <input type="text" name='Key' placeholder="Ключ">
+      <button type="submit">Отвправить</button>
+    </form>
+  </div>
+
   <div class='MsgBlock'>
     {{range .Messages}}
       <div class="Message">
         <div class='UserInfo'>
           {{range .UserInfo}}
             <div style="margin-right: 5px;">
-              <img src="/static/avatar/{{.Ava}}" style='width: 65px; height: 65px;'>
+              <img src="/static/avatar/{{.Ava}}" style='width: 60px; height: 60px;'>
             </div>
             <div>
               <h3 class='UserName' style="color:{{.Color}};" >{{.Name}}</h3>
-              <span style='font-size: .95em;'> 
+              <span style='font-size: .93em;'> 
                 <span>Репутация:</span>
                 <span style='color: rgb(16, 136, 0);'>{{.Op}}</span>
               </span>
@@ -47,6 +55,32 @@
   </div>
 
   <style>
+    .heKey input {
+      background-color: rgb(10, 10, 10);
+      border: 2px solid rgb(20, 20, 20);
+      transition: .2s;
+      padding: 2px 1px;
+    }
+    .heKey input::placeholder {
+      padding-left: 2px;
+    }
+    .heKey input::-moz-placeholder {
+      padding-left: 2px;
+    }
+    .heKey input:focus {
+      outline: none;
+      box-shadow: 0 0 2px 1px rgb(148, 0, 0);
+      color: #ddd;
+    }
+    .heKey button {
+      background-color: rgb(10, 10, 10);
+      border: 1px solid rgb(20, 20, 20);
+    }
+    .heKey button:hover {
+      box-shadow: inset 0 0 2px 1px rgb(0, 0, 0);
+      background-color: rgb(8, 8, 8);
+      border: 1px solid rgb(18, 18, 18);
+    }
     .Message {
       border-top: 1px solid #888;
       border-bottom: 1px solid #888;
@@ -63,7 +97,8 @@
     }
     .UserName {
       margin-bottom: 0;
-      font-size: 1.4em;
+      font-size: 1.35em;
+      font-weight: 400;
     }
     .ContentMsg p {
       font-size: 16px;

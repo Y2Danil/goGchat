@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"crypto/cipher"
+	"crypto/des"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -9,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/context"
@@ -21,6 +24,10 @@ var store = sessions.NewCookieStore([]byte(os.Getenv("aHf5FsFd93f3232trfhGbSDW82
 
 type Config struct {
 	SecritCookie string
+}
+
+type heKyeST struct {
+	key string
 }
 
 // User класс пользователя
@@ -120,6 +127,65 @@ func JSONread() string {
 
 	return result.SecritCookie
 }
+
+func DesEncryption(key, iv, plainText []byte) ([]byte, error) {
+
+	block, err := des.NewCipher(key)
+
+	if err != nil {
+			return nil, err
+	}
+
+	blockSize := block.BlockSize()
+	origData := PKCS5Padding(plainText, blockSize)
+	blockMode := cipher.NewCBCEncrypter(block, iv)
+	cryted := make([]byte, len(origData))
+	blockMode.CryptBlocks(cryted, origData)
+	return cryted, nil
+}
+
+func DesDecryption(key, iv, cipherText []byte) ([]byte, error) {
+
+	block, err := des.NewCipher(key)
+
+	if err != nil {
+			return nil, err
+	}
+
+	blockMode := cipher.NewCBCDecrypter(block, iv)
+	origData := make([]byte, len(cipherText))
+	blockMode.CryptBlocks(origData, cipherText)
+	origData = PKCS5UnPadding(origData)
+	fmt.Print(origData, "+\n\n\n+")
+	return origData, nil
+}
+
+func PKCS5Padding(src []byte, blockSize int) []byte {
+	padding := blockSize - len(src)%blockSize
+	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(src, padtext...)
+}
+
+func PKCS5UnPadding(src []byte) []byte {
+	var result []byte
+	var diap int
+
+	length := len(src)
+	unpadding := int(src[length-1])
+	
+	if length - unpadding < 0 {
+		diap = (length - unpadding) * -1
+	} else {
+		diap = length - unpadding
+	}
+
+	if diap >= length {
+		diap = length-1
+	}
+
+	result = src[:diap]
+	return result
+}                                        
 
 func getUsers(sqlCode string) []User {
 	// conn := fmt.Sprint("user=fldyqnxcgmlctw password=d86ddbb94a3059ab90cea9bb58432f1e4150a85bfbd440cd1fa8b9ecd45a8618 host=ec2-54-76-215-139.eu-west-1.compute.amazonaws.com port=5432 dbname=db85a48j30fvr sslmode=require")
@@ -293,10 +359,50 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 	Messages := getMessages(fmt.Sprintf("SELECT * FROM \"Message\" WHERE rubric_id=%s", ThemeID))
 	DeshifrMessages := []DeshifrMessage{}
 
+	fmt.Println(Messages)
 	if Messages != nil {
+		var deKey interface{}
+		var stringDeKey string
+		var sessionKey *sessions.Session
+
 		for i := range Messages {
-			TextMsg := bytes.NewBuffer(Messages[i].TextMsg).String()
+			fmt.Print(">>>")
+			fmt.Println(Messages[i].TextMsg)
+			sessionKey, _ = store.Get(r, "drYdvaj29dS2kEy$2wcdsgdsauw")
+			deKey = sessionKey.Values["Key"]
+			stringDeKey = fmt.Sprintf("%s", deKey)
+			fmt.Print(stringDeKey)
+			if stringDeKey == "" || len(stringDeKey) != 8 {
+				stringDeKey = "keyIdiot"
+			}
+
+			byteDeKey := []byte(stringDeKey)
+			fmt.Print("\n\n\n")
+			fmt.Println(byteDeKey)
+			// ivKey := []byte(string(byteDeKey) + strings.Repeat("0", 16))
+			// byteDeKey = []byte(string(byteDeKey) + strings.Repeat("0", 16))
+			ivKey := byteDeKey
+			fmt.Println(string(ivKey))
+			fmt.Println(ivKey)
+			deMsgText, errDes := DesDecryption(byteDeKey, ivKey, Messages[i].TextMsg)
+
+			if errDes != nil {
+				fmt.Fprintf(w, "Error404")
+			}
+			//deMsgText := byteTextMessages
+			fmt.Print("--")
+
+			// if errDe != nil {
+			// 	fmt.Print("Err: ")
+			// 	log.Fatal(errDe)
+			// }
+
+			fmt.Print(">")
+			TextMsg := string(deMsgText)
+			fmt.Print("\n\n\n>")
+			fmt.Println(TextMsg)
 			UserInfo := getUsers(fmt.Sprintf("SELECT id, name, password, admin, op, moder, ava, status, color FROM \"User\" WHERE id=%d", Messages[i].UserID))
+
 			Msg := DeshifrMessage{Messages[i].ID, TextMsg, Messages[i].UserID, Messages[i].ThemeID, Messages[i].PubDate, UserInfo}
 			DeshifrMessages = append(DeshifrMessages, Msg)
 		} 
@@ -449,32 +555,114 @@ func Loginka(w http.ResponseWriter, r *http.Request) {
 func ClearCookie(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "User")
 	session.Options.MaxAge = -1
-
 	err := session.Save(r, w)
 
 	if err != nil {
 		log.Fatal("failed to delete session", err)
 	}
+
+	session2, _ := store.Get(r, "drYdvaj29dS2kEy$2wcdsgdsauw")
+	session2.Options.MaxAge = -1
+	err2 := session2.Save(r, w)
+
+	if err2 != nil {
+		log.Fatal("failed to delete session", err2)
+	}
+
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func heKey(w http.ResponseWriter, r *http.Request) {
+
+	key := r.FormValue("Key")
+
+	session, _ := store.Get(r, "drYdvaj29dS2kEy$2wcdsgdsauw")
+	session.Values["Key"] = key
+	err := session.Save(r, w)
+	fmt.Println(session.Values["Key"])
+
+	if err != nil {
+		log.Fatal("failed to delete session", err)
+	}
+
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
 func AddMsg(w http.ResponseWriter, r *http.Request) {
 	userID := r.FormValue("userID")
 	themeID := r.FormValue("themeID")
 	msgText := r.FormValue("MsgText")
+	fmt.Println(msgText)
+
+	if len(msgText) % 8 != 0 {
+		for len(msgText) % 8 != 0 {
+			msgText = msgText + " "
+		}
+	}
+
+	fmt.Println(fmt.Sprintf("\"%s\"", msgText))
+
+	session, _ := store.Get(r, "drYdvaj29dS2kEy$2wcdsgdsauw")
+	fmt.Println("b")
+	key := session.Values["Key"]
+	keyHe := fmt.Sprintf("%s", key)
+	if keyHe == "" || len(keyHe) / 8 != 1 {
+		keyHe = "keyIdiot"
+	}
+	keyShifr := []byte(keyHe)
+	fmt.Println("c")
+	fmt.Println(keyHe)
+
+	textMsg := []byte(msgText)
+
+	// ivKey := []byte(string(keyShifr) + strings.Repeat("0", 16))
+	// keyShifr = []byte(string(keyShifr) + strings.Repeat("0", 16))
+	ivKey := keyShifr
+	fmt.Println(len(ivKey))
+	text, err := DesEncryption(keyShifr, ivKey, textMsg)
+	//SStextMsg := string(text)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// var listUint8 []uint8
+
+	// for i := text {
+	// 	listUIN8 = append(listUIN8, text[i])
+	// }
+	// fmt.Println(listUIN8)
+	//textMessages := string(text)
+	//fmt.Println(textMessages)
 
 	db := conn()
 	t := time.Now()
-	sqlCode := fmt.Sprintf("INSERT INTO \"Message\"(text, user_id, rubric_id, pub_date) VALUES ('%s', %s, %s, '%s')", msgText, userID, themeID, t.Format(time.RFC3339))
-	fmt.Println(sqlCode)
-	db.Query(sqlCode)
+
+	intUserID, errUserID := strconv.Atoi(userID)
+	if errUserID != nil {
+		log.Fatal(errUserID)
+	}
+
+	intThemeID, errThemeID := strconv.Atoi(themeID)
+	if errThemeID != nil {
+		log.Fatal(errThemeID)
+	}
+
+	fmt.Println(intThemeID)
+	fmt.Println(intUserID)
+	fmt.Println(text)
+	fmt.Println(string(text))
+
+	//codyUTF, errSqlUTF := db.Query("SET client_encoding = 'UTF8';")
+	//(SELECT MAX(id) FROM \"Message\")+
+	db.Exec("INSERT INTO \"Message\"(id, text, user_id, rubric_id, pub_date) VALUES ((SELECT MAX(id) FROm \"Message\")+1, $1, $2, $3, $4)", text, intUserID, intThemeID, t.Format(time.RFC3339))
+	// (SELECT MAX(id) FROM \"Message\")+
 	// Vars := mux.Vars(r)
 	// w.WriteHeader(http.StatusOK)
 
 	// redic := Vars["redic"]
 	defer db.Close()
 
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	defer http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
 func handleRequest() {
@@ -485,6 +673,7 @@ func handleRequest() {
 	rtr.HandleFunc("/authtorization/", Loginka).Methods("POST")
 	rtr.HandleFunc("/clearCookie/", ClearCookie).Methods("GET")
 	rtr.HandleFunc("/addMsg/", AddMsg).Methods("POST")
+	rtr.HandleFunc("/heKey/", heKey).Methods("POST")
 	
 	http.Handle("/", rtr)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
@@ -494,7 +683,7 @@ func handleRequest() {
 		port = "9000"
 	}
 	http.ListenAndServe(":" + port, context.ClearHandler(http.DefaultServeMux))
-	//http.ListenAndServe(":8000", nil)
+	// http.ListenAndServe(":8000", nil)
 }
 
 func main() {
