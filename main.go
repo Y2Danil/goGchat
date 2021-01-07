@@ -677,7 +677,7 @@ func handleRequest() {
 	
 	http.Handle("/", rtr)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-	// HAHAH Danil перешел с питона на голэнг
+	// HAHAH Danil перешел с питона на голэнг --
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "9000"
