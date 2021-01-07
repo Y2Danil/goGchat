@@ -677,7 +677,7 @@ func handleRequest() {
 	
 	http.Handle("/", rtr)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-	// heroku con
+	// heroku conn
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "9000"
