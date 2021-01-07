@@ -1,1 +1,1 @@
-web: govnoChat
+web: main
