@@ -1,1 +1,0 @@
-web: go-Getting-started
