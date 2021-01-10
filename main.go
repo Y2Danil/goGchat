@@ -64,9 +64,10 @@ type LoginUser struct {
 
 // Type класс раздела
 type Type struct {
-	ID    int
-	Title string
-	MinOp int
+	ID     int
+	Title  string
+	MinOP  int
+	Number int
 }
 
 // Theme класс темы 
@@ -110,7 +111,7 @@ type DeshifrMessage struct {
 }
 
 func conn() *sql.DB {
-	conn := fmt.Sprint("user=ijvqxpzulogxyt password=c118cf0739abbc357614cb5cb38dc84f8ae08fcc331e20f1725f224270ace732 host=ec2-46-137-79-235.eu-west-1.compute.amazonaws.com port=5432 dbname=d655kmienbsq13 sslmode=require")
+	conn := fmt.Sprint("user=jxshkqwscipcrp password=1b295c68c3ed29d97863be3330518cf60221dc09dbf276406a1a7ba139165d15 host=ec2-54-75-199-252.eu-west-1.compute.amazonaws.com port=5432 dbname=dfk9friue538t3 sslmode=require")
 	db, err := sql.Open("postgres", conn)
 
 	if err != nil {
@@ -258,7 +259,7 @@ func getTypes(sqlCode string) []Type {
 
 	for value.Next() {
 		t := Type{}
-		err := value.Scan(&t.ID, &t.Title, &t.MinOp)
+		err := value.Scan(&t.ID, &t.Title, &t.MinOP, &t.Number)
 
 		if err != nil {
 			fmt.Println(err)
