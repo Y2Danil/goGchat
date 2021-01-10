@@ -1,0 +1,7 @@
+/pugs/
+*.sass
+*.css.map
+/.sass-cache
+*.sassc
+*.pug
+base_new.html

@@ -1,0 +1,14 @@
+
+{{define "type"}}
+{{template "header"}}
+<main class="col-lg-9 content-container">
+  <div class="TypeClass">
+    <h2>{{.Title}}</h2>
+    <div>{{range .Themes}}
+      <div class="themeInTypePage">
+        <h1 class="themeTitle"><a href="/theme/{{.ID}}/">{{.Title}}</a></h1><span class="mini_dop">{{.MiniDop}}</span>
+      </div>{{end}}
+    </div>
+  </div>
+</main>{{template "footer"}}
+{{end}}

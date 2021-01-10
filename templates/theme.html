@@ -4,12 +4,14 @@
   <!-- Основной контент страницы  -->
   <h1 style='margin-left: 5px;'>{{ .ThemeInfo.Title }}</h1>
 
-  <div style="margin-left: 5px; margin-bottom: 10px;">
-    <form method="post" action="/heKey/" class="heKey">
-      <input type="text" name='Key' placeholder="Ключ">
-      <button type="submit">Отвправить</button>
-    </form>
-  </div>
+  {{if .ThemeInfo.Anon }}
+    <div style="margin-left: 5px; margin-bottom: 10px;">
+      <form method="post" action="/heKey/" class="heKey">
+        <input type="text" name='Key' placeholder="Ключ">
+        <button type="submit">Отвправить</button>
+      </form>
+    </div>
+  {{end}}
 
   <div class='MsgBlock'>
     {{range .Messages}}
@@ -155,6 +157,51 @@
       color: #777;
     }
   </style>
+
+  <script>
+    function MsgCover() {
+      const messagesText = document.querySelectorAll("div.Message .ContentMsg p");
+      const res = {
+        "br": /\[br\]/g,
+        "http": /\[a="http\:\/\/.+\..+"\].+\[\/a\]/g,
+        "https": /\[a="https\:\/\/.+\..+"\].+\[\/a\]/g,
+      }
+      
+      let msgCoverText
+      let httpList
+      let httpsList
+      let replaceHttp
+      let replaceHttps
+
+      messagesText.forEach((msg) => {
+        msgCoverText = msg.innerHTML.replace(res["br"], `<br>`);
+
+        httpList = msgCoverText.match(res["http"]);
+        if(httpList) {
+          httpList.forEach((http) => {
+            replaceHttp = http.replace(/\[a=/g, `<a class="linkHttp" href=`);
+            replaceHttp = replaceHttp.replace(/"\]/g, `">`);
+            replaceHttp = replaceHttp.replace(/\[\/a\]/g, `</a>`);
+
+            msgCoverText = msgCoverText.replace(http, replaceHttp);
+          });
+        }
+
+        httpsList = msgCoverText.match(res["https"]);
+        if(httpsList) {
+          httpsList.forEach((https) => {
+            replaceHttps = https.replace(/\[a=/g, `<a class="httpsLink" href=`);
+            replaceHttps = replaceHttps.replace(/"\]/g, `">`);
+            replaceHttps = replaceHttps.replace(/\[\/a\]/g, `</a>`);
+
+            msgCoverText = msgCoverText.replace(https, replaceHttps);
+          });
+        }
+
+        msg.innerHTML = msgCoverText;
+      });
+    } MsgCover();
+  </script>
 </main>
 {{ template "footer" }}
 {{ end }}
