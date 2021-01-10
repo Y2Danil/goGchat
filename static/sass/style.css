@@ -1,23 +1,33 @@
 div.TypeAndTheme h2 a {
   text-decoration: none;
-  color: #ccc; }
+  color: #ccc;
+}
+
 div.TypeAndTheme h2 a:hover {
-  color: #bbb; }
+  color: #bbb;
+}
 
 div.TypeClass h2 {
-  margin-left: 10px; }
+  margin-left: 10px;
+}
 
 .themeInTypePage {
   border-top: 1px solid #888;
   border-bottom: 1px solid #888;
   margin-bottom: 10px;
-  padding: 5px 10px; }
-  .themeInTypePage h1.themeTitle {
-    font-size: 1.8em !important; }
-    .themeInTypePage h1.themeTitle a {
-      color: #ddd;
-      text-decoration: none; }
-    .themeInTypePage h1.themeTitle a:hover {
-      color: #bbb; }
+  padding: 5px 10px;
+}
 
+.themeInTypePage h1.themeTitle {
+  font-size: 1.8em !important;
+}
+
+.themeInTypePage h1.themeTitle a {
+  color: #ddd;
+  text-decoration: none;
+}
+
+.themeInTypePage h1.themeTitle a:hover {
+  color: #bbb;
+}
 /*# sourceMappingURL=style.css.map */
