@@ -2,30 +2,32 @@
 {{ template "header" }}
 <main class="col-lg-9 content-container">
   <!-- Основной контент страницы  -->
+  {{if .User}}
+  {{ $user := .User }}
   <h1 style='margin-left: 5px;'>{{ .ThemeInfo.Title }}</h1>
 
-  {{if .ThemeInfo.Anon }}
-    <div style="margin-left: 5px; margin-bottom: 10px;">
-      <form method="post" action="/heKey/" class="heKey">
-        <input type="text" name='Key' placeholder="Ключ">
-        <button type="submit">Отвправить</button>
-      </form>
-    </div>
-  {{end}}
+  <div style="margin-left: 5px; margin-bottom: 10px;">
+    <form method="post" action="/heKey/" class="heKey">
+      <input type="text" name='Key' placeholder="Ключ">
+      <button type="submit">Отвправить</button>
+    </form>
+  </div>
 
-  <div class='MsgBlock'>
-    {{range .Messages}}
+  <section class='MsgBlock'>
+    {{range $m := .Messages}}
+      {{if ne $m.Number 0}}
+      {{ $m.Number }}
       <div class="Message">
         <div class='UserInfo'>
-          {{range .UserInfo}}
+          {{range $u := $m.UserInfo}}
             <div style="margin-right: 5px;">
-              <img src="/static/avatar/{{.Ava}}" style='width: 60px; height: 60px;'>
+              <img src="/static/avatar/{{$u.Ava}}" style='width: 60px; height: 60px;'>
             </div>
             <div>
-              <h3 class='UserName' style="color:{{.Color}};" >{{.Name}}</h3>
+              <h3 class='UserName' style="color:{{$u.Color}};" >{{$u.Name}}</h3>
               <span style='font-size: .93em;'> 
                 <span>Репутация:</span>
-                <span style='color: rgb(16, 136, 0);'>{{.Op}}</span>
+                <span style='color: rgb(16, 136, 0);'>{{$u.Op}}</span>
               </span>
             </div>
           {{else}}
@@ -35,33 +37,114 @@
           {{end}}
         </div>
         <div class="ContentMsg">
-          <p style='color: #fff;'>{{.TextMsg}}</p>
+          <p style='color: #fff;'>{{$m.TextMsg}}</p>
         </div>
+        <div class="options">
+          {{ range $u := $m.UserInfo }}
+            {{ if and (eq $u.Name $user.Name) (eq $u.ID $user.ID) (eq $u.Op $user.OP) }}
+            <button type="button" class="regMsgBtn" data-bs-toggle="modal" data-bs-target="#modalWindow{{$m.ID}}">
+              Редактированть
+            </button>
+            <div class="modal fade" id="modalWindow{{$m.ID}}" tabindex="-1" aria-labelledby="exampleModalLabel{{$m.ID}}" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel{{$m.ID}}">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <form method="post" action="/updateMsg/">
+                    <div class="modal-body">
+                        <textarea name="regMsgText" class="regMsgText">{{ $m.TextMsg }}</textarea>
+                        <input type="hidden" name="userID" value="{{ $m.UserID }}">
+                        <input type="hidden" name="msgID" value="{{ $m.ID }}">
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" data-bs-dismiss="modal">Закрыть</button>
+                      <button type="submit">Сохранить</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            {{end}}
+          {{ else }}
+          <!-- pass -->
+          {{ end }}
+          {{ if $user }}
+            <form method="post" action="/addLike/">
+              <input type="hidden" name="userID" value="{{ $user.ID }}" readonly>
+              <input type="hidden" name="msgID" value="{{ $m.ID }}" readonly>
+              <button type="submit">
+                Оценить
+              </button>
+            </form>
+          {{ end }}
+        </div>
+        <div>
+          {{ if $m.Likes }}
+            {{ $lenLikes := len $m.Likes }}
+            <div style="display: inline-block;"></div>
+            {{ if eq $lenLikes 1 }}
+              {{range $l := $m.Likes}}
+                  <span>{{ $l.UserName }}</span>
+              {{else}}
+                <!-- pass -->
+              {{end}}
+            {{else}}
+              {{if lt $lenLikes 5}}
+                {{ $srezLikes := minus $lenLikes 1 }}
+                {{range $l := slice $m.Likes 0 $srezLikes }}
+                    <span>{{ $l.UserName }},</span>
+                {{else}}
+                  <!-- pass -->
+                {{end}}
+                {{range $l := slice $m.Likes $srezLikes }}
+                    <span>{{ $l.UserName }}</span>
+                {{else}}
+                  <!-- pass -->
+                {{end}}
+              {{else}}
+                {{if ge $lenLikes 5}}
+                  {{range $l := slice $m.Likes 0 3}}
+                      <span>{{ $l.UserName }},</span>
+                  {{else}}
+                    <!-- pass -->
+                  {{end}}
+                  <span>{{ (index $m.Likes 4).UserName }}</span>
+                  {{ $lenLikesOst := slice $m.Likes 4 }}
+                  <span>и еще {{ len $lenLikesOst }}</span>
+                {{else}}
+                {{end}}
+              {{end}}
+            {{end}}
+            </div>
+          {{ end }}
+        </div>
+        {{end}}
       </div>
     {{else}}
       <h1>Пусто:(((</h1>
     {{end}}
 
-    {{if .User}}
-      <div class='divAddMsg'>
-        <form method="post" action="/addMsg/">
-          <textarea name="MsgText" placeholder="Ваше сообщение"></textarea>
-          <input type="hidden" name="themeID" value="{{ .ThemeInfo.ID }}">
-          <input type="hidden" name="userID" value="{{ .User.ID }}">
-          <button type="submit" class='AddMsgButton'>Отправить</button>
-        </form>
-      </div>
-    {{else}}
-      <div></div>
-    {{end}}
-  </div>
+    <div class='divAddMsg'>
+      <form method="post" action="/addMsg/">
+        <textarea name="MsgText" placeholder="Ваше сообщение"></textarea>
+        <input type="hidden" name="themeID" value="{{ .ThemeInfo.ID }}">
+        <input type="hidden" name="userID" value="{{ .User.ID }}">
+        <button type="submit" class='AddMsgButton'>Отправить</button>
+      </form>
+    </div>
+  </section>
+  {{else}}
+    <!-- pass -->
+  {{end}}
 
   <style>
     .heKey input {
       background-color: rgb(10, 10, 10);
-      border: 2px solid rgb(20, 20, 20);
+      border: 1px solid rgb(20, 20, 20);
       transition: .2s;
-      padding: 2px 1px;
+      padding: 2px 0;
     }
     .heKey input::placeholder {
       padding-left: 2px;
@@ -166,7 +249,7 @@
         "http": /\[a="http\:\/\/.+\..+"\].+\[\/a\]/g,
         "https": /\[a="https\:\/\/.+\..+"\].+\[\/a\]/g,
       }
-      
+
       let msgCoverText
       let httpList
       let httpsList

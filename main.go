@@ -6,6 +6,7 @@ import (
 	"crypto/des"
 	"database/sql"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"html/template"
 	"log"
@@ -15,6 +16,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -22,6 +24,11 @@ import (
 )
 
 var store = sessions.NewCookieStore([]byte(os.Getenv("aHf5FsFd93f3232trfhGbSDW82bHsicL")))
+
+type ErrorDate struct {
+	ErrText string
+	Link    string
+}
 
 type Config struct {
 	SecritCookie string
@@ -98,6 +105,11 @@ type Message struct {
 	UserID     int
 	ThemeID    int
 	PubDate    time.Time
+	Number 		 int
+}
+
+type UserNameStruct struct {
+	UserName string
 }
 
 // DeshifrMessage - тот-же Message, только TextMsg строковой
@@ -108,6 +120,24 @@ type DeshifrMessage struct {
 	ThemeID    int
 	PubDate    time.Time
 	UserInfo   []User
+	Likes 		 []UserNameStruct
+	Number 		 int
+}
+
+type ThemeMinOPandTitle struct {
+	MinOp int64
+	Title string
+}
+
+type LikeUserIdStruct struct {
+	UserID int
+}
+
+// LikeStruct - лайк
+type LikeStruct struct {
+	ID     int
+	UserID int
+	MsgID  int
 }
 
 func conn() *sql.DB {
@@ -315,7 +345,7 @@ func getMessages(sqlCode string) []Message {
 
 	for value.Next() {
 		m := Message{}
-		err := value.Scan(&m.ID, &m.TextMsg, &m.UserID, &m.ThemeID, &m.PubDate)
+		err := value.Scan(&m.ID, &m.TextMsg, &m.UserID, &m.ThemeID, &m.PubDate, &m.Number)
 
 		if err != nil {
 			fmt.Println(err)
@@ -329,12 +359,12 @@ func getMessages(sqlCode string) []Message {
 	return Messages
 }
 
-func OpenType(w http.ResponseWriter, r *http.Request) {
-	type StructOpenType struct {
-		Title   string
-		Themes []ThemeTitleAndMinDopAndID
-	}
+type StructOpenType struct {
+	Title   string
+	Themes []ThemeTitleAndMinDopAndID
+}
 
+func OpenType(w http.ResponseWriter, r *http.Request) {
 	var userOP interface{}
 	var data = StructOpenType{}
 
@@ -356,12 +386,16 @@ func OpenType(w http.ResponseWriter, r *http.Request) {
 	Type, errThemeSQL := db.Query("SELECT min_op, title FROM \"Type\" WHERE id=$1", typeID)
 
 	if errThemeSQL != nil {
-		fmt.Fprintf(w, "Error404")
-	}
+		tmpl, err := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"", r.Header.Get("Referer")}
 
-	type ThemeMinOPandTitle struct {
-		MinOp int64
-		Title string
+		if err != nil {
+			color.Red(err.Error())
+			fmt.Fprintf(w, err.Error())
+		}
+
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
 	}
 
 	themeMinOp := ThemeMinOPandTitle{} 
@@ -381,7 +415,16 @@ func OpenType(w http.ResponseWriter, r *http.Request) {
 		typeThemes, errThemeSQL := db.Query("SELECT title, mini_dop, id FROM \"Theme\" WHERE type_id=$1", typeID)
 
 		if errThemeSQL != nil {
-			fmt.Fprintf(w, "Error404")
+			tmpl, err := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"Попробуйте зайти позже", r.Header.Get("Referer")}
+
+			if err != nil {
+				color.Red(err.Error())
+				fmt.Fprintf(w, err.Error())
+			}
+
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
 		}
 
 		var themeInType = []ThemeTitleAndMinDopAndID{}
@@ -398,7 +441,16 @@ func OpenType(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/type.html", "templates/header.html", "templates/footer.html")
 
 		if err != nil {
-			fmt.Fprintf(w, "Error404")
+			tmpl, err := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"", r.Header.Get("Referer")}
+
+			if err != nil {
+				color.Red(err.Error())
+				fmt.Fprintf(w, err.Error())
+			}
+
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
 		}
 
 		defer db.Close()
@@ -438,15 +490,20 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles("templates/homePage.html", "templates/header.html", "templates/footer.html")
 
 	if err != nil {
-		fmt.Fprintf(w, err.Error())
+		tmpl, err := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"", r.Header.Get("Referer")}
+
+		if err != nil {
+			color.Red(err.Error())
+			fmt.Fprintf(w, err.Error())
+		}
+
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
 	}
 
-	var session *sessions.Session
-	session, _ = store.Get(r, "User")
-
-	fmt.Printf("\n\n\n")
-	fmt.Println(session.Values["Name"])
-	fmt.Printf("\n\n\n")
+	// var session *sessions.Session
+	// session, _ = store.Get(r, "User")
 
 	tmpl.ExecuteTemplate(w, "index", TAT)
 }
@@ -462,14 +519,71 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	ThemeID := Vars["id"]
+	numPageStr := Vars["numPage"]
+	numPage, err := strconv.Atoi(numPageStr)
+
+	if err != nil {
+		tmpl, err := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"АААА ОШИБКА!!!", r.Header.Get("Referer")}
+
+		if err != nil {
+			color.Red(err.Error())
+			fmt.Fprintf(w, err.Error())
+		}
+
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
 	ThemeInfo := getThemes(fmt.Sprintf("SELECT * FROM \"Theme\" WHERE id=%s", ThemeID))[0]
 	//WHERE rubric_id=%s;
-	Messages := getMessages(fmt.Sprintf("SELECT * FROM \"Message\" WHERE rubric_id=%s", ThemeID))
+	var Messages []Message
+	if numPage == 1 {
+		Messages = getMessages(fmt.Sprintf("SELECT * FROM \"Message\" WHERE rubric_id=%s AND number<=15", ThemeID))
+	} else if numPage < 1 {
+		tmpl, err := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"такой страницы не существует", r.Header.Get("Referer")}
+
+		if err != nil {
+			color.Red(err.Error())
+			fmt.Fprintf(w, err.Error())
+		}
+
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	} else {
+		startNum := numPage*15-15
+		endNum := startNum+16
+		Messages = getMessages(fmt.Sprintf("SELECT * FROM \"Message\" WHERE rubric_id=%s AND %d<number AND number<%d", ThemeID, startNum, endNum))
+		if len(Messages) == 0 {
+			//http.Error(w, "<video><source src=\"/static/error/niger_grob.mp4\" width=\"400px\" autoplay></video>", 404)
+			tmpl, err := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"Такой страницы не существует!", r.Header.Get("Referer")}
+
+			if err != nil {
+				color.Red(err.Error())
+				fmt.Fprintf(w, err.Error())
+			}
+			//fmt.Println(c.Value)
+
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
+		}
+	}
 	DeshifrMessages := []DeshifrMessage{}
 	userSession, errUserSession := store.Get(r, "User")
 
 	if errUserSession != nil {
-		fmt.Fprintf(w, "Error404")
+		tmpl, err := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{")))", r.Header.Get("Referer")}
+
+		if err != nil {
+			color.Red(err.Error())
+			fmt.Fprintf(w, err.Error())
+		}
+
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
 	}
 
 	var user *sql.Rows
@@ -482,14 +596,32 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 		user, dbErr = db.Query("SELECT OP FROM \"User\" WHERE id=$1", userID)
 
 		if dbErr != nil {
-			fmt.Fprintf(w, "Error404")
+			tmpl, err := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+
+			if err != nil {
+				color.Red(err.Error())
+				fmt.Fprintf(w, err.Error())
+			}
+
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
 		}
 
 		for user.Next() {
 			err := user.Scan(&op.OP)
 
 			if err != nil {
-				fmt.Fprintf(w, "Error404")
+				tmpl, err := template.ParseFiles("templates/err.html")
+				var errData ErrorDate = ErrorDate{"", r.Header.Get("Referer")}
+
+				if err != nil {
+					color.Red(err.Error())
+					fmt.Fprintf(w, err.Error())
+				}
+
+				tmpl.ExecuteTemplate(w, "error", errData)
+				return 
 			}
 		}
 
@@ -500,6 +632,8 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 		op = OPuser{OP: 0}
 	}
 
+	
+
 	if op.OP >= ThemeInfo.MinOp {
 		if Messages != nil {
 			var deKey interface{}
@@ -507,7 +641,6 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 			var sessionKey *sessions.Session
 
 			if ThemeInfo.Anon == true {
-
 			for i := range Messages {
 				sessionKey, _ = store.Get(r, "drYdvaj29dS2kEy$2wcdsgdsauw")
 				deKey = sessionKey.Values["Key"]
@@ -523,13 +656,82 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 				deMsgText, errDes := DesDecryption(byteDeKey, ivKey, Messages[i].TextMsg)
 
 				if errDes != nil {
-					fmt.Fprintf(w, "Error404")
+					tmpl, err := template.ParseFiles("templates/err.html")
+					var errData ErrorDate = ErrorDate{"Ошибка кодировки", r.Header.Get("Referer")}
+
+					if err != nil {
+						color.Red("====================")
+						fmt.Println("\n\n\n\n")
+						color.Red(err.Error())
+						fmt.Println("\n\n\n\n")
+						color.Red("====================")
+						fmt.Fprintf(w, err.Error())
+					}
+
+					tmpl.ExecuteTemplate(w, "error", errData)
+					return 
 				}
 
 				TextMsg := string(deMsgText)
 				UserInfo := getUsers(fmt.Sprintf("SELECT id, name, password, admin, op, moder, ava, status, color FROM \"User\" WHERE id=%d", Messages[i].UserID))
 
-				Msg := DeshifrMessage{Messages[i].ID, TextMsg, Messages[i].UserID, Messages[i].ThemeID, Messages[i].PubDate, UserInfo}
+				db := conn()
+
+				likesEncode, errSql := db.Query("SELECT user_id FROM \"Like\" WHERE msg_id=$1", Messages[i].ID) 
+
+				if errSql != nil {
+					tmpl, err := template.ParseFiles("templates/err.html")
+					var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+
+					if err != nil {
+						color.Red(err.Error())
+						fmt.Fprintf(w, err.Error())
+					}
+
+					tmpl.ExecuteTemplate(w, "error", errData)
+					return 
+				}
+
+				likesDecode := []LikeUserIdStruct{}
+
+				for likesEncode.Next() {
+					l := LikeUserIdStruct{}
+					likesEncode.Scan(&l.UserID)
+
+					likesDecode = append(likesDecode, l)
+				}
+
+				likesUserName := []UserNameStruct{}
+
+				for likeNumber := range likesDecode {
+					userNameLike := UserNameStruct{}
+						
+					userNames, errSql := db.Query("SELECT name FROM \"User\" WHERE id=$1", likesDecode[likeNumber].UserID)
+					if errSql != nil {
+						tmpl, err := template.ParseFiles("templates/err.html")
+						var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+
+						if err != nil {
+							color.Red(err.Error())
+							fmt.Fprintf(w, err.Error())
+						}
+
+						tmpl.ExecuteTemplate(w, "error", errData)
+						return 
+					}
+
+					for userNames.Next() {
+						userNames.Scan(&userNameLike.UserName)
+					}
+
+					likesUserName = append(likesUserName, userNameLike)
+				}
+
+				fmt.Println(likesUserName)
+
+				defer db.Close()
+
+				Msg := DeshifrMessage{Messages[i].ID, TextMsg, Messages[i].UserID, Messages[i].ThemeID, Messages[i].PubDate, UserInfo, likesUserName, Messages[i].Number}
 				DeshifrMessages = append(DeshifrMessages, Msg)
 			} 
 			} else {
@@ -539,18 +741,69 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 					TextMsg := string(deMsgText)
 					UserInfo := getUsers(fmt.Sprintf("SELECT id, name, password, admin, op, moder, ava, status, color FROM \"User\" WHERE id=%d", Messages[i].UserID))
 
-					Msg := DeshifrMessage{Messages[i].ID, TextMsg, Messages[i].UserID, Messages[i].ThemeID, Messages[i].PubDate, UserInfo}
+					db := conn()
+
+					likesEncode, errSql := db.Query("SELECT user_id FROM \"Like\" WHERE msg_id=$1", Messages[i].ID)
+
+					if errSql != nil {
+						tmpl, err := template.ParseFiles("templates/err.html")
+						var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+
+						if err != nil {
+							color.Red(err.Error())
+							fmt.Fprintf(w, err.Error())
+						}
+
+						tmpl.ExecuteTemplate(w, "error", errData)
+						return 
+					}
+
+					likesDecode := []LikeUserIdStruct{}
+
+					for likesEncode.Next() {
+						l := LikeUserIdStruct{}
+						likesEncode.Scan(&l.UserID)
+
+						likesDecode = append(likesDecode, l)
+					}
+
+					likesUserName := []UserNameStruct{}
+
+					for likeNumber := range likesDecode {
+						userNameLike := UserNameStruct{}
+						
+						userNames, errSql := db.Query("SELECT name FROM \"User\" WHERE id=$1", likesDecode[likeNumber])
+						if errSql != nil {
+							tmpl, err := template.ParseFiles("templates/err.html")
+							var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+
+							if err != nil {
+								color.Red(err.Error())
+								fmt.Fprintf(w, err.Error())
+							}
+
+							tmpl.ExecuteTemplate(w, "error", errData)
+							return 
+						}
+
+						for userNames.Next() {
+							u := UserNameStruct{}
+							userNames.Scan(&u.UserName)
+						}
+
+						likesUserName = append(likesUserName, userNameLike)
+					}
+
+					defer db.Close()
+
+					Msg := DeshifrMessage{Messages[i].ID, TextMsg, Messages[i].UserID, Messages[i].ThemeID, Messages[i].PubDate, UserInfo, likesUserName, Messages[i].Number}
 					DeshifrMessages = append(DeshifrMessages, Msg)
 				}
 			}
 		}
 
-		// DataTaDM Словарь для хранения Theme и DeshifrMsg, TaMD - Theme and DeshifrMsg
-
 		session, _ := store.Get(r, "User")
 		UserName := session.Values["Name"]
-		fmt.Print("UserName: ")
-		fmt.Println(UserName)
 		var data = DataTaDM{}
 		if UserName == nil {
 			data = DataTaDM{ThemeInfo: ThemeInfo, Messages: DeshifrMessages, User: nil}
@@ -574,15 +827,26 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 					ID:    session.Values["ID"],
 				},
 			}
-			fmt.Println("b")
 		}
-		fmt.Println(data)
 		
 
-		tmpl, err := template.ParseFiles("templates/theme.html", "templates/header.html", "templates/footer.html")
+		//tmpl, err := template.ParseFiles("templates/theme.html", "templates/header.html", "templates/footer.html")
+		tmpl, err := template.New("").Funcs(template.FuncMap{
+			"minus": func(arg1 int, arg2 int) int {
+				return arg1 - arg2
+			},
+		}).ParseFiles("templates/theme.html", "templates/header.html", "templates/footer.html")
 
 		if err != nil {
-			fmt.Fprintf(w, err.Error())
+			tmpl, err := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"", r.Header.Get("Referer")}
+
+			if err != nil {
+				color.Red(err.Error())
+			}
+
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
 		}
 
 		sort.Slice(data.Messages, func(i, j int) bool {return data.Messages[i].ID < data.Messages[j].ID})
@@ -597,7 +861,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles("templates/register.html", "templates/header.html", "templates/footer.html")
 
 	if err != nil {
-		fmt.Fprintf(w, "Error404")
+		tmpl, err := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"", r.Header.Get("Referer")}
+
+		if err != nil {
+			color.Red(err.Error())
+		}
+
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
 	}
 
 	tmpl.ExecuteTemplate(w, "register", nil)
@@ -625,7 +897,7 @@ func CreateAcc(w http.ResponseWriter, r *http.Request) {
 		if !checkUser {
 			db := conn()
 
-			_, DBerr := db.Exec("insert into \"User\" VALUES ((SELECT MAX(id) FROM \"User\")+1, $1, $2, false, 0, false, 'default_ava.jpg', 'Новый пользователь', '#888', false, null);", data.Nick, data.Pass2)
+			_, DBerr := db.Exec("insert into \"User\" VALUES ((SELECT MAX(id) FROM \"User\")+1, $1, $2, false, 0, false, 'default_ava.jpg', 'Новый пользователь', '#888');", data.Nick, data.Pass2)
 
 			if DBerr != nil {
 				fmt.Fprintf(w, "Error404")
@@ -638,19 +910,44 @@ func CreateAcc(w http.ResponseWriter, r *http.Request) {
 
 				defer http.Redirect(w, r, "/login/", http.StatusSeeOther)
 			}
+		} else {
+			tmpl, err := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"плак-плак", r.Header.Get("Referer")}
+
+			if err != nil {
+				color.Red(err.Error())
+			}
+
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
 		}
-	}
+	} else {
+		defer http.Redirect(w, r, "/register/", http.StatusSeeOther)
+	} 
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles("templates/login.html", "templates/header.html", "templates/footer.html")
 
 	if err != nil {
-		fmt.Fprintf(w, err.Error())
+		tmpl, err := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"", r.Header.Get("Referer")}
+
+		if err != nil {
+			color.Red(err.Error())
+		}
+
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
 	}
 	//fmt.Println(c.Value)
 
 	tmpl.ExecuteTemplate(w, "login", nil)
+}
+
+type CheckNameAndPassword struct {
+	ID int
+	OP int
 }
 
 func Loginka(w http.ResponseWriter, r *http.Request) {
@@ -672,11 +969,6 @@ func Loginka(w http.ResponseWriter, r *http.Request) {
 
 		data.Success = true
 
-		type CheckNameAndPassword struct {
-			ID int
-			OP int
-		}
-
 		sqlCode := fmt.Sprintf("SELECT id, op FROM \"User\" WHERE name='%s' AND password='%s';", data.Name, data.Password)
 		fmt.Println(sqlCode)
 
@@ -685,7 +977,15 @@ func Loginka(w http.ResponseWriter, r *http.Request) {
 		User, err := db.Query(sqlCode)
 
 		if err != nil {
-			fmt.Println(err)
+			tmpl, err := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+
+			if err != nil {
+				color.Red(err.Error())
+			}
+
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
 		}
 
 		CheckUser := []CheckNameAndPassword{}
@@ -701,17 +1001,12 @@ func Loginka(w http.ResponseWriter, r *http.Request) {
 			CheckUser = append(CheckUser, u)
 		}
 
-		fmt.Println(CheckUser)
-
 		if len(CheckUser) == 1 {
 			session, _ := store.Get(r, "User")
 			session.Values["Name"] = data.Name
 			session.Values["OP"] = CheckUser[0].OP
 			session.Values["ID"] = CheckUser[0].ID
 			err := session.Save(r, w)
-			fmt.Print(">>>>")
-			fmt.Println(session.Values["Name"])
-			fmt.Println(session.Values["OP"])
 
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -735,7 +1030,15 @@ func ClearCookie(w http.ResponseWriter, r *http.Request) {
 	err2 := session2.Save(r, w)
 
 	if err2 != nil {
-		log.Fatal("failed to delete session", err2)
+		tmpl, err := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"неполучилось удалить сессию( попробуйте ещё раз", r.Header.Get("Referer")}
+
+		if err != nil {
+			color.Red(err.Error())
+		}
+
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
 	}
 
 	session, _ := store.Get(r, "User")
@@ -743,7 +1046,15 @@ func ClearCookie(w http.ResponseWriter, r *http.Request) {
 	err := session.Save(r, w)
 
 	if err != nil {
-		log.Fatal("failed to delete session", err)
+		tmpl, err := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"неполучилось удалить сессию( попробуйте ещё раз", r.Header.Get("Referer")}
+
+		if err != nil {
+			color.Red(err.Error())
+		}
+
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
 	}
 
 	defer http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -759,7 +1070,15 @@ func heKey(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(session.Values["Key"])
 
 	if err != nil {
-		log.Fatal("failed to delete session", err)
+		tmpl, err := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"", r.Header.Get("Referer")}
+
+		if err != nil {
+			color.Red(err.Error())
+		}
+
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
 	}
 
 	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
@@ -775,7 +1094,17 @@ func AddMsg(w http.ResponseWriter, r *http.Request) {
 	themeInfo, errSQL := db.Query("SELECT anon FROM \"Theme\" WHERE id=$1", themeID)
 
 	if errSQL != nil {
-		fmt.Fprintf(w, "Error404")
+		tmpl, err := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+	
+		if err != nil {
+			fmt.Println(err.Error())
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return
+		}
+	
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
 	}
 
 	type ThemeAnon struct {
@@ -788,7 +1117,17 @@ func AddMsg(w http.ResponseWriter, r *http.Request) {
 		err := themeInfo.Scan(&themeAN.Anon)
 
 		if err != nil {
-			fmt.Fprintf(w, "Error404")
+			tmpl, errTMPL := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+		
+			if errTMPL != nil {
+				fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+				tmpl.ExecuteTemplate(w, "error", errData) 
+				return
+			}
+		
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
 		}
 	}
 
@@ -817,7 +1156,17 @@ func AddMsg(w http.ResponseWriter, r *http.Request) {
 		text, err = DesEncryption(keyShifr, ivKey, textMsg)
 		
 		if err != nil {
-			log.Fatal(err)
+			tmpl, errTMPL := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+		
+			if errTMPL != nil {
+				fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+				tmpl.ExecuteTemplate(w, "error", errData) 
+				return
+			}
+		
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
 		}
 	} else {
 		text = []byte(msgText)
@@ -827,26 +1176,267 @@ func AddMsg(w http.ResponseWriter, r *http.Request) {
 
 	intUserID, errUserID := strconv.Atoi(userID)
 	if errUserID != nil {
-		log.Fatal(errUserID)
+		tmpl, errTMPL := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"", r.Header.Get("Referer")}
+		
+		if errTMPL != nil {
+			fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+			tmpl.ExecuteTemplate(w, "error", errData) 
+			return
+		}
+		
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
 	}
 
 	intThemeID, errThemeID := strconv.Atoi(themeID)
 	if errThemeID != nil {
-		log.Fatal(errThemeID)
+		tmpl, errTMPL := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"", r.Header.Get("Referer")}
+		
+		if errTMPL != nil {
+			fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+			tmpl.ExecuteTemplate(w, "error", errData) 
+			return
+		}
+		
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
 	}
 
-	db.Exec("INSERT INTO \"Message\"(id, text, user_id, rubric_id, pub_date) VALUES ((SELECT MAX(id) FROm \"Message\")+1, $1, $2, $3, $4)", text, intUserID, intThemeID, t.Format(time.RFC3339))
+	_, errSql := db.Exec("INSERT INTO \"Message\"(id, text, user_id, rubric_id, pub_date, number) VALUES (1, $1, $2, $3, $4, 1)", text, intUserID, intThemeID, t.Format(time.RFC3339))
+
+	if errSql != nil {
+		tmpl, errTMPL := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+		
+		if errTMPL != nil {
+			fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+			tmpl.ExecuteTemplate(w, "error", errData) 
+			return
+		}
+		
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
 	
+	// (SELECT MAX(number) FROM \"Message\" WHERE rubric_id=$2)
+	// (SELECT MAX(id) FROM \"Message\")+1
 	defer db.Close()
 
 	defer http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
+func UpdateMsg(w http.ResponseWriter, r *http.Request) {
+	userSession, errSession := store.Get(r, "User")
+
+	if errSession != nil {
+		tmpl, errTMPL := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"плак-плак", r.Header.Get("Referer")}
+		
+		if errTMPL != nil {
+			fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+			tmpl.ExecuteTemplate(w, "error", errData) 
+			return
+		}
+		
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	if userSession != nil {
+		userID := userSession.Values["ID"]
+		userIDstr := fmt.Sprintf("%d", userID)
+
+		postID := r.FormValue("userID")
+		if userIDstr == postID {
+			var finalTextMsg []byte
+			var DesError interface{}
+
+			sessionKey, errSessionKey := store.Get(r, "drYdvaj29dS2kEy$2wcdsgdsauw")
+			if errSessionKey != nil {
+				tmpl, errTMPL := template.ParseFiles("templates/err.html")
+				var errData ErrorDate = ErrorDate{"плак-плак", r.Header.Get("Referer")}
+				
+				if errTMPL != nil {
+					fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+					tmpl.ExecuteTemplate(w, "error", errData) 
+					return
+				}
+				
+				tmpl.ExecuteTemplate(w, "error", errData)
+				return 
+			}
+
+			newMsgText := r.FormValue("regMsgText")
+
+			if len(newMsgText) % 8 != 0 {
+				for len(newMsgText) % 8 != 0 {
+					newMsgText = newMsgText+" "
+				}
+			}
+
+			if sessionKey != nil {
+				keyShifr := sessionKey.Values["Key"]
+				keyShifrStr := fmt.Sprintf("%s", keyShifr)
+
+				if len(keyShifrStr) != 8 {
+					keyShifrStr = "keyIdiot"
+				}
+
+				keyShifrByte := []byte(keyShifrStr)
+
+				textMsgByte := []byte(newMsgText)
+
+				finalTextMsg, DesError = DesEncryption(keyShifrByte, keyShifrByte, textMsgByte)
+				if DesError != nil {
+					tmpl, errTMPL := template.ParseFiles("templates/err.html")
+					var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+					
+					if errTMPL != nil {
+						fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+						tmpl.ExecuteTemplate(w, "error", errData) 
+						return
+					}
+					
+					tmpl.ExecuteTemplate(w, "error", errData)
+					return 
+				}
+			} else {
+				finalTextMsg = []byte(newMsgText)
+			}
+
+			msgID := r.FormValue("msgID")
+
+			db := conn()
+
+			_, sqlError := db.Exec("UPDATE \"Message\" SET text=$1 WHERE id=$2 AND user_id=$3", finalTextMsg, msgID, userID)
+			if sqlError != nil {
+				tmpl, errTMPL := template.ParseFiles("templates/err.html")
+				var errData ErrorDate = ErrorDate{"NOOOOOOOOOOOOO", r.Header.Get("Referer")}
+				
+				if errTMPL != nil {
+					fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+					tmpl.ExecuteTemplate(w, "error", errData) 
+					return
+				}
+				
+				tmpl.ExecuteTemplate(w, "error", errData)
+				return 
+			}
+
+			defer db.Close()
+
+			defer http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+		} else {
+			tmpl, errTMPL := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{":(((((", r.Header.Get("Referer")}
+			
+			if errTMPL != nil {
+				fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+				tmpl.ExecuteTemplate(w, "error", errData) 
+				return
+			}
+			
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
+		}
+	} else {
+		tmpl, errTMPL := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{":(((", r.Header.Get("Referer")}
+		
+		if errTMPL != nil {
+			fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+			tmpl.ExecuteTemplate(w, "error", errData) 
+			return
+		}
+		
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+}
+
+func AddLike(w http.ResponseWriter, r *http.Request) {
+	userSession, errSession := store.Get(r, "User")
+
+	if errSession != nil {
+		tmpl, errTMPL := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{":(((", r.Header.Get("Referer")}
+		
+		if errTMPL != nil {
+			fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+			tmpl.ExecuteTemplate(w, "error", errData) 
+			return
+		}
+		
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	if userSession != nil {
+		var userID string = r.FormValue("userID")
+
+		if userID == fmt.Sprintf("%v", userSession.Values["ID"]) {
+			var msgID string = r.FormValue("msgID")
+
+			db := conn()
+
+			_, errSql := db.Exec("INSERT INTO \"Like\" VALUES ((SELECT MAX(id) FROM \"Like\")+1, $1, $2)", userID, msgID)
+
+			defer db.Close()
+
+			if errSql != nil {
+				color.Red(errSql.Error())
+				tmpl, errTMPL := template.ParseFiles("templates/err.html")
+				var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+				
+				if errTMPL != nil {
+					fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+					tmpl.ExecuteTemplate(w, "error", errData) 
+					return
+				}
+				
+				tmpl.ExecuteTemplate(w, "error", errData)
+				return 
+			}
+
+			defer http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+		} else {
+			tmpl, errTMPL := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+			if errTMPL != nil {
+				fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+				tmpl.ExecuteTemplate(w, "error", errData) 
+				return
+			}
+			
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
+		}
+	} else {
+		tmpl, errTMPL := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+		
+		if errTMPL != nil {
+			fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+			tmpl.ExecuteTemplate(w, "error", errData) 
+			return
+		}
+		
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+}
+
 func handleRequest() {
+	var dir string
+	flag.StringVar(&dir, "dir", ".", ".")
+	flag.Parse()
 	rtr := mux.NewRouter()
 	rtr.HandleFunc("/", homePage).Methods("GET")
 	rtr.HandleFunc("/{id:[0-9]+}/", OpenType).Methods("GET")
-	rtr.HandleFunc("/theme/{id:[0-9]+}/", openTheme).Methods("GET")
+	rtr.HandleFunc("/theme/{id:[0-9]+}/{numPage:[0-9]+}/", openTheme).Methods("GET")
 	rtr.HandleFunc("/register/", Register).Methods("GET")
 	rtr.HandleFunc("/createAcc/", CreateAcc).Methods("POST")
 	rtr.HandleFunc("/login/", Login).Methods("GET")
@@ -854,6 +1444,12 @@ func handleRequest() {
 	rtr.HandleFunc("/clearCookie/", ClearCookie).Methods("GET")
 	rtr.HandleFunc("/addMsg/", AddMsg).Methods("POST")
 	rtr.HandleFunc("/heKey/", heKey).Methods("POST")
+	rtr.HandleFunc("/updateMsg/", UpdateMsg).Methods("POST")
+	rtr.HandleFunc("/addLike/", AddLike).Methods("POST")
+	// fs := http.FileServer(http.Dir("./static/"))
+	// rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
+	
+	//rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))
 	
 	http.Handle("/", rtr)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
@@ -863,7 +1459,7 @@ func handleRequest() {
 		port = "9000"
 	}
 	http.ListenAndServe(":" + port, context.ClearHandler(http.DefaultServeMux))
-	//http.ListenAndServe(":8000", nil)
+	//http.ListenAndServe(":8080", nil)
 }
 
 func main() {
