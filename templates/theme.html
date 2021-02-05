@@ -13,10 +13,14 @@
     </form>
   </div>
 
+  <!--script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script-->
   <section class='MsgBlock'>
     {{range $m := .Messages}}
       {{if ne $m.Number 0}}
-      {{ $m.Number }}
+      <div>
+        <span>{{dateTimeConver $m.PubDate}}</span>
+        <span class="float-right">#{{ $m.Number }}</span>
+      </div>
       <div class="Message">
         <div class='UserInfo'>
           {{range $u := $m.UserInfo}}
@@ -40,11 +44,13 @@
           <p style='color: #fff;'>{{$m.TextMsg}}</p>
         </div>
         <div class="options">
+          <div class="podoptions row">
           {{ range $u := $m.UserInfo }}
             {{ if and (eq $u.Name $user.Name) (eq $u.ID $user.ID) (eq $u.Op $user.OP) }}
-            <button type="button" class="regMsgBtn" data-bs-toggle="modal" data-bs-target="#modalWindow{{$m.ID}}">
-              Редактированть
-            </button>
+            <div>
+              <button type="button" class="regMsgBtn" data-bs-toggle="modal" data-bs-target="#modalWindow{{$m.ID}}">
+                Редак
+              </button>
             <div class="modal fade" id="modalWindow{{$m.ID}}" tabindex="-1" aria-labelledby="exampleModalLabel{{$m.ID}}" aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
@@ -66,24 +72,61 @@
                 </div>
               </div>
             </div>
+            </div>
             {{end}}
           {{ else }}
           <!-- pass -->
           {{ end }}
           {{ if $user }}
-            <form method="post" action="/addLike/">
-              <input type="hidden" name="userID" value="{{ $user.ID }}" readonly>
-              <input type="hidden" name="msgID" value="{{ $m.ID }}" readonly>
-              <button type="submit">
+          <div>
+            <form method="post" action="/addLike/" class='addLikeForm'>
+              <input type="hidden" name="userID" id="addLikeUserID{{$m.ID}}" value="{{ $user.ID }}" readonly>
+              <input type="hidden" name="msgID" id="addLikeMsgID{{$m.ID}}" value="{{ $m.ID }}" readonly>
+              <button type="submit" id="AddLikeSubmitBtn{{$m.ID}}" class='addLikeSubmitBtnClass'>
                 Оценить
               </button>
+              <script>
+                var stop = false;
+                if(stop === false){
+                $('#AddLikeSubmitBtn{{$m.ID}}').on('submit', function(e){
+                  let userID = $("#addLikeUserID{{$m.ID}}").val();
+                  let msgID = $("#addLikeMsgID{{$m.ID}}").val();
+                  e.preventDefault();
+                  $.ajax({
+                    url: "/addLike/",
+                    type: "POST",
+                    data: {
+                      userID: userID,
+                      msgID: msgID,
+                    },
+                    success: function(results){
+                      let el = document.getElementById("LikeSelectUsers{{$m.ID}}");
+                      let elHTML = el.innerHTML;
+                      if(elHTML.match(/и еще.+/g)){
+                        sliceInt = elHTML.match(/и еще.+/g);
+                        alert(sliceInt);
+                        sliceInt = string(sliceInt).slice(6);
+                        alert(sliceInt);
+                      }else{
+                        el2 = document.getElementById("PostLikeSelectUsers{{$m.ID}}");
+                        el2.innerHTML = el2.innerHTML+"\r<span>, {{$user.Name}}</span>";
+                        alert("aa");
+                      }
+                    }
+                  });
+                });
+                stop=true;
+                }
+              </script>
             </form>
+          </div>
           {{ end }}
+          </div>
         </div>
-        <div>
+        <div id="LikeSelectUsers{{$m.ID}}">
           {{ if $m.Likes }}
             {{ $lenLikes := len $m.Likes }}
-            <div style="display: inline-block;"></div>
+            <div style="display: inline-block;" id="PostLikeSelectUsers{{$m.ID}}">
             {{ if eq $lenLikes 1 }}
               {{range $l := $m.Likes}}
                   <span>{{ $l.UserName }}</span>
@@ -240,8 +283,7 @@
       color: #777;
     }
   </style>
-
-  <script>
+  <script>  
     function MsgCover() {
       const messagesText = document.querySelectorAll("div.Message .ContentMsg p");
       const res = {
@@ -285,6 +327,9 @@
       });
     } MsgCover();
   </script>
+  <!-- <script>
+    $("#AddLikeSubmitBtn").click()
+  </script> -->
 </main>
 {{ template "footer" }}
 {{ end }}

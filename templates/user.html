@@ -1,0 +1,131 @@
+
+{{ define "user" }}
+{{ template "header" }}
+<main class="col-lg-9 content-container">{{ $userInfo := . }}
+  <style>
+    img.userAccImg {
+      width: 100px;
+    }
+    span.userStatus {
+      color: #dfdfdf;
+    }
+    span.podOP {
+      color: #ddd;
+    }
+    span.userOP {
+      color: rgb(240, 0, 0);
+    }
+    div.divTwoInUserInfoOne {
+      position: relative;
+    }
+    div.StatusAndOP {
+      position: absolute;
+      bottom: 0;
+    }
+    div.userInfoTwo {
+      margin: 0 auto;
+      width: 99%;
+    }
+    div.userInfoTwo > div {
+      margin: 0 auto;
+    }
+    div.userInfoTwo > div form.fromNewAva {
+      display: inline;
+    }
+    img.AvaListImg {
+      width: 80px;
+    }
+    button.btnNewAvater {
+      border: none;
+      background: none;
+      padding: 1px;
+    }
+    
+  </style>
+  <section id="UserBlock">
+    <!--script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"-->
+    <!--script(src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous")-->
+    <div class="userInfoOne">
+      <div><img class="userAccImg" src="/static/avatar/{{ .Ava }}" id="userAccImgID"/></div>
+      <div class="divTwoInUserInfoOne">
+        <h2 class="userName" style="color:{{.Color}}">{{ .Name }}</h2>
+        <div class="StatusAndOP"><span class="userStatus">{{ .Status }} </span><br/><span class="podOP">Опыт: <span class="userOP">{{.OP}}</span></span></div>
+      </div>
+    </div>{{ if eq .Check true }}<span class="settingInUserAcc">Настройки</span>
+    <hr class="hrUnderSpanSettings"/>
+    <button class="button_ava_target" type="button" data-bs-toggle="collapse" data-bs-target="#new_avatar" aria-expanded="false" aria-controls="new_avatar">
+       Выбрать новую аву</button>
+    <div class="collapse" id="new_avatar">
+      <div class="userInfoTwo">
+        <div>{{range $i := .AvaList}}
+          <form class="fromNewAva" action="/updateAva/" method="POST" id="newAvaFrom{{$i}}">
+            <button class="btnNewAvater" id="btnSybmitNewAva_{{$i}}" type="submit"><img class="AvaListImg" src="/static/avatar/{{$i}}"/></button>
+          </form>
+          <script>
+            var from = document.getElementById("newAvaFrom{{$i}}");
+            $(from).submit(function(e){
+              e.preventDefault();
+              var loadWin = document.createElement("div");
+              document.body.append(loadWin)
+              loadWin.setAttribute("id", "loadWindow");
+              loadWin.setAttribute("style", 
+              `
+                position: fixed; 
+                top: 0;
+                right: 0; 
+                z-index: 99999; 
+                background: #111; 
+                padding: 5px; 80px; 
+                height: 40px;
+                width: 50px;
+              `)
+              loadWin.innerHTML = `
+                <div>
+                  <span class="spanPalck1">|</span>
+                  <span class="spanPalck2">|</span>
+                  <span class="spanPalck3">|</span>
+                </div>
+            
+                <style>
+                  div#loadWindow > div {
+                    position: relative;
+                    left: 3px;
+                    margin: 0 auto;
+                    width: 25px;
+                  }
+                  .spanPalck1 {
+                    animation: loadWindowPalck1 .9s linear infinite;
+                  }
+                  .spanPalck2 {
+                    animation: loadWindowPalck2 .9s linear infinite;
+                  }
+                  .spanPalck3 {
+                    animation: loadWindowPalck3 .9s linear infinite;
+                  }
+                </style>
+              `
+              $.post("/updateAva/", {userID: '{{$userInfo.ID}}', newAva: '{{$i}}'}).done(function(data){
+                if(data["error"] === true) {
+                  window.location.replace("/err/");
+                }
+                var elAvaImg = document.getElementById("userAccImgID");
+                elAvaImg.setAttribute("src", "/static/avatar/"+'{{$i}}');
+                var loadWinByID = document.getElementById("loadWindow");
+                loadWinByID.remove();
+              });
+            });
+          </script>{{else}}
+          <div>
+            <button onclick="redirectPrivateChat">Написать</button>
+            <script>
+              function redirectPrivateChat() {
+                window.location.replace("/privateChat/{{$userInfo.ID}}-{{$userInfo.YouID}}/");
+              }
+            </script>
+          </div>{{end}}
+        </div>
+      </div>
+    </div>{{ end }}
+  </section>
+</main>{{ template "footer" }}
+{{ end }}

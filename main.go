@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -17,7 +18,6 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	_ "github.com/lib/pq"
@@ -835,6 +835,19 @@ func openTheme(w http.ResponseWriter, r *http.Request) {
 			"minus": func(arg1 int, arg2 int) int {
 				return arg1 - arg2
 			},
+			"dateTimeConver": func(dateTime time.Time) string {
+				fmt.Println(dateTime)
+				moscow, errDateTime := time.LoadLocation("Europe/Moscow")
+
+				if errDateTime != nil {
+					http.Error(w, "Error 404 :((((((", 404)
+				}
+
+				now := time.Now().In(moscow)
+				fmt.Println(now)
+				result := fmt.Sprintf("%s", dateTime) 
+				return result[:16]
+			},
 		}).ParseFiles("templates/theme.html", "templates/header.html", "templates/footer.html")
 
 		if err != nil {
@@ -1084,6 +1097,10 @@ func heKey(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
+type ThemeAnon struct {
+	Anon bool
+}
+
 func AddMsg(w http.ResponseWriter, r *http.Request) {
 	userID := r.FormValue("userID")
 	themeID := r.FormValue("themeID")
@@ -1094,6 +1111,7 @@ func AddMsg(w http.ResponseWriter, r *http.Request) {
 	themeInfo, errSQL := db.Query("SELECT anon FROM \"Theme\" WHERE id=$1", themeID)
 
 	if errSQL != nil {
+		color.Red(errSQL.Error())
 		tmpl, err := template.ParseFiles("templates/err.html")
 		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
 	
@@ -1107,11 +1125,7 @@ func AddMsg(w http.ResponseWriter, r *http.Request) {
 		return 
 	}
 
-	type ThemeAnon struct {
-		Anon bool
-	}
-
-	themeAN := ThemeAnon{}
+	var themeAN ThemeAnon = ThemeAnon{}
 
 	for themeInfo.Next() {
 		err := themeInfo.Scan(&themeAN.Anon)
@@ -1172,7 +1186,7 @@ func AddMsg(w http.ResponseWriter, r *http.Request) {
 		text = []byte(msgText)
 	}
 
-	t := time.Now()
+	//t := time.Now().Round(0)
 
 	intUserID, errUserID := strconv.Atoi(userID)
 	if errUserID != nil {
@@ -1204,9 +1218,28 @@ func AddMsg(w http.ResponseWriter, r *http.Request) {
 		return 
 	}
 
-	_, errSql := db.Exec("INSERT INTO \"Message\"(id, text, user_id, rubric_id, pub_date, number) VALUES (1, $1, $2, $3, $4, 1)", text, intUserID, intThemeID, t.Format(time.RFC3339))
+	moscow, errDateTime := time.LoadLocation("Europe/Moscow")
+
+	if errDateTime != nil {
+		tmpl, errTMPL := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"", r.Header.Get("Referer")}
+		
+		fmt.Println("\n\n\n", errDateTime.Error(), "\n\n\n")
+
+		if errTMPL != nil {
+			http.Error(w, "Error 404 :((((((", 404)
+		}
+		
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+	
+	now := time.Now().In(moscow)
+	fmt.Println(now)
+	_, errSql := db.Exec("INSERT INTO \"Message\"(id, text, user_id, rubric_id, pub_date, number) VALUES ((SELECT MAX(id) FROM \"Message\")+1, $1, $2, $3, $4, (SELECT MAX(number) FROM \"Message\" WHERE rubric_id=$5)+1)", text, intUserID, intThemeID, now, themeID)
 
 	if errSql != nil {
+		color.Red(errSql.Error())
 		tmpl, errTMPL := template.ParseFiles("templates/err.html")
 		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
 		
@@ -1356,6 +1389,10 @@ func UpdateMsg(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type LikeIDstruct struct {
+	ID int
+}
+
 func AddLike(w http.ResponseWriter, r *http.Request) {
 	userSession, errSession := store.Get(r, "User")
 
@@ -1375,18 +1412,58 @@ func AddLike(w http.ResponseWriter, r *http.Request) {
 
 	if userSession != nil {
 		var userID string = r.FormValue("userID")
+		var msgID string = r.FormValue("msgID")
 
-		if userID == fmt.Sprintf("%v", userSession.Values["ID"]) {
-			var msgID string = r.FormValue("msgID")
+		db := conn()
+		checkLike, errSqlSelectLike := db.Query("SELECT id FROM \"Like\" WHERE user_id=$1 AND msg_id=$2", userID, msgID)
 
-			db := conn()
+		if errSqlSelectLike != nil {
+			color.Red(errSqlSelectLike.Error())
+			tmpl, errTMPL := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+			if errTMPL != nil {
+				fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+				tmpl.ExecuteTemplate(w, "error", errData) 
+				return
+			}
+			
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
+		}
 
-			_, errSql := db.Exec("INSERT INTO \"Like\" VALUES ((SELECT MAX(id) FROM \"Like\")+1, $1, $2)", userID, msgID)
+		checkLikeID := []LikeIDstruct{}
 
-			defer db.Close()
+		for checkLike.Next() {
+			l := LikeIDstruct{}
+			checkLike.Scan(&l.ID)
+			checkLikeID = append(checkLikeID, l)
+		}
 
-			if errSql != nil {
-				color.Red(errSql.Error())
+		fmt.Println(checkLikeID)
+		if len(checkLikeID) == 0 {
+			if userID == fmt.Sprintf("%v", userSession.Values["ID"]) {
+				_, errSql := db.Exec("INSERT INTO \"Like\" VALUES ((SELECT MAX(id) FROM \"Like\")+1, $1, $2)", userID, msgID)
+
+				defer db.Close()
+
+				if errSql != nil {
+					color.Red(errSql.Error())
+					tmpl, errTMPL := template.ParseFiles("templates/err.html")
+					var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+					
+					if errTMPL != nil {
+						fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
+						tmpl.ExecuteTemplate(w, "error", errData) 
+						return
+					}
+					
+					tmpl.ExecuteTemplate(w, "error", errData)
+					return 
+				}
+
+				// defer http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+			} else {
 				tmpl, errTMPL := template.ParseFiles("templates/err.html")
 				var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
 				
@@ -1399,8 +1476,6 @@ func AddLike(w http.ResponseWriter, r *http.Request) {
 				tmpl.ExecuteTemplate(w, "error", errData)
 				return 
 			}
-
-			defer http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		} else {
 			tmpl, errTMPL := template.ParseFiles("templates/err.html")
 			var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
@@ -1414,19 +1489,469 @@ func AddLike(w http.ResponseWriter, r *http.Request) {
 			tmpl.ExecuteTemplate(w, "error", errData)
 			return 
 		}
-	} else {
-		tmpl, errTMPL := template.ParseFiles("templates/err.html")
+	}
+}
+
+type UserAccInfoStruct struct {
+	ID      int
+	Name    string
+	Admin   bool  
+	OP      int
+	Moder   bool
+	Ava     string
+	Status  string
+	Color   string
+	Check   bool
+	AvaList []string
+	YouID   string
+}
+
+func UserAcc(w http.ResponseWriter, r *http.Request) {
+	Vars := mux.Vars(r)
+	w.WriteHeader(http.StatusOK)
+
+	UserID := Vars["id"]
+
+	session, _ := store.Get(r, "User")
+  checkID :=	session.Values["ID"]
+	errSession := session.Save(r, w)
+
+	if errSession != nil {
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
 		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
-		
-		if errTMPL != nil {
-			fmt.Print("\n\n\n", errTMPL.Error(), "\n\n\n")
-			tmpl.ExecuteTemplate(w, "error", errData) 
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
 			return
 		}
-		
+			
 		tmpl.ExecuteTemplate(w, "error", errData)
 		return 
 	}
+
+	db := conn()
+
+	var userInfo UserAccInfoStruct = UserAccInfoStruct{}
+
+	userIDint, errStrconv := strconv.Atoi(fmt.Sprintf("%v", UserID))
+
+	if errStrconv != nil {
+		color.Red(errStrconv.Error())
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	userInfo.ID = userIDint
+
+	if fmt.Sprintf("%v", checkID) == UserID {
+		userInfo.Check = true
+	} else {
+		userInfo.Check = false
+	}
+
+	userInfo.YouID = fmt.Sprintf("%v", checkID)
+
+	userInfoDb := db.QueryRow("SELECT name, admin, op, moder, ava, status, color FROM \"User\" WHERE id=$1", UserID)
+	errSQL := userInfoDb.Scan(&userInfo.Name, &userInfo.Admin, &userInfo.OP, &userInfo.Moder, &userInfo.Ava, &userInfo.Status, &userInfo.Color)
+
+	if errSQL != nil && errSQL != sql.ErrNoRows {
+		color.Red(errSQL.Error())
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	filesList, errFilesRead := ioutil.ReadDir("./static/avatar")
+
+	if errFilesRead != nil {
+		color.Red(errFilesRead.Error())
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	// "ava_Danil++_id=1.jpg"
+	if UserID != "1" {
+		for _, file := range filesList {
+			if file.Name() != "ava_Danil++_id=1.jpg" {
+				userInfo.AvaList = append(userInfo.AvaList, file.Name())
+			}
+		}
+	} else {
+		for _, file := range filesList {
+			userInfo.AvaList = append(userInfo.AvaList, file.Name())
+		}
+	}
+
+	tmpl, errTMPL := template.ParseFiles("templates/user.html", "templates/header.html", "templates/footer.html")
+	
+	if errTMPL != nil {
+		color.Red(errTMPL.Error())
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	defer db.Close()
+
+	tmpl.ExecuteTemplate(w, "user", userInfo)
+}
+
+type OldAvaStruct struct {
+	OldAva string
+}
+
+type UpdateAvaStruct struct {
+	UserID string
+	NewAva string
+}
+
+func ErrorFucn(w http.ResponseWriter, r *http.Request) {
+	tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+	var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+	if errTMPLerr != nil {
+		http.Error(w, "Error 666", 404)
+		return
+	}
+			
+	tmpl.ExecuteTemplate(w, "error", errData)
+	return 
+}
+
+func UpdateAva(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "User")
+  checkID :=	session.Values["ID"]
+	errSession := session.Save(r, w)
+
+	if errSession != nil {
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	
+	r.ParseForm()
+
+	UserID := r.FormValue("userID")
+	if UserID == fmt.Sprintf("%v", checkID) {
+		NewAva := r.FormValue("newAva")
+
+		db := conn()
+
+		fmt.Print("//")
+		fmt.Println(UserID, NewAva)
+
+		var oldAvaPostScan OldAvaStruct = OldAvaStruct{}
+
+		oldAva := db.QueryRow("SELECT ava FROM \"User\" WHERE id=$1", UserID)
+
+		errSQLselect := oldAva.Scan(&oldAvaPostScan.OldAva)
+
+		if errSQLselect != nil {
+			color.Red(errSQLselect.Error())
+		} 
+
+		fmt.Println(oldAvaPostScan.OldAva)
+
+		_, errSQLupdate := db.Exec("UPDATE \"User\" SET ava=$1 WHERE id=$2", UserID, NewAva)
+
+		if errSQLupdate != nil {
+			//color.Red(errSQLselect.Error())
+			fmt.Println("\n\n\n", errSQLupdate.Error(), "\n\n\n")
+		}
+
+		defer db.Close()
+
+		result := map[string]bool{
+			"error": false,
+		}
+
+		b, err := json.MarshalIndent(result, "", "  ")
+    if err != nil {
+			http.Error(w, "ERROR *_*", 404)
+    }
+		fmt.Printf("%s\n", b)
+		
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(b)
+		
+	}	else {
+		result := map[string]bool{
+			"error": true,
+		}
+
+		b, err := json.MarshalIndent(result, "", "  ")
+    if err != nil {
+      http.Error(w, "ERROR *_*", 404)
+    }
+		fmt.Printf("%s\n", b)
+		
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(b)
+	}
+}
+
+// PrivateMessageStruct - структура, для получения из db поля PrivateMessage(без chat_id)
+type PrivateMessageStruct struct {
+	ID      int
+	Text    []byte
+	UserID  int
+	PubDate time.Time
+}
+
+// DeshifrPrivateMessageStruct - тоже, что и PrivateMessageStruct, только текс дешифрованый + добавил имя пользователя
+type DeshifrPrivateMessageStruct struct {
+	ID       int
+	Text     string
+	UserID   int
+	UserName string
+	PubDate  time.Time
+}
+
+func PrivateChat(w http.ResponseWriter, r *http.Request) {
+	Vars := mux.Vars(r)
+
+	oneUserID := Vars["OneID"]
+	twoUserID := Vars["TwoID"]
+
+	session, errGetSession := store.Get(r, "User")
+
+	if errGetSession != nil {
+		color.Red(errGetSession.Error())
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	checkID := fmt.Sprintf("%v", session.Values["ID"])
+	errSession := session.Save(r, w)
+
+	if checkID != oneUserID && checkID != twoUserID {
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	if errSession != nil {
+		color.Red(errSession.Error())
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	db := conn()
+
+	checkPrivateChat := db.QueryRow(
+		"SELECT id FROM \"PrivateChat\" WHERE (one_user_id=$1 AND two_user_id=$2) OR (one_user_id=$2 AND two_user_id=$1)", 
+		oneUserID,
+		twoUserID,
+	)
+
+	var checkIdPrivateChat interface{}
+
+	errSQL := checkPrivateChat.Scan(&checkIdPrivateChat)
+
+	if errSQL != nil {
+		color.Red(errSQL.Error())
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	selectMessages, errSelectMessagesSQL := db.Query(
+		"SELECT id, text, user_id, pub_date FROM \"PrivateMessage\" WHERE id=$1",
+		checkIdPrivateChat,
+	)
+
+	if errSelectMessagesSQL != nil {
+		color.Red(errSelectMessagesSQL.Error())
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	var messages []PrivateMessageStruct
+
+	for selectMessages.Next() {
+		m := PrivateMessageStruct{}
+		selectMessages.Scan(&m.ID, &m.Text, &m.UserID, &m.PubDate)
+
+		messages = append(messages, m)
+	}
+
+	var dehifrMessages []DeshifrPrivateMessageStruct
+
+	sessionKey, errSessionGet := store.Get(r, "drYdvaj29dS2kEy$2wcdsgdsauw")
+
+	if errSessionGet != nil {
+		color.Red(errSessionGet.Error())
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	deKey := sessionKey.Values["Key"]
+	stringDeKey := fmt.Sprintf("%s", deKey)
+
+	if stringDeKey == "" || len(stringDeKey) % 8 != 0 {
+		stringDeKey = "keyIdiot"
+	}
+
+	for i := range messages {
+		byteText := messages[i].Text
+		stringText, errDes := DesDecryption(
+			[]byte(stringDeKey),
+			[]byte(stringDeKey),
+			byteText,
+		)
+
+		if errDes != nil {
+			color.Red(errDes.Error())
+			tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+				
+			if errTMPLerr != nil {
+				http.Error(w, "Error 666", 404)
+				return
+			}
+				
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return 
+		}
+
+		var selectUserName *sql.Row = db.QueryRow(
+			"SELECT name FROM \"User\" WHERE id=$1",
+			messages[i].ID,
+		)
+
+		var stringUserName string
+
+		errSqlRow := selectUserName.Scan(&stringUserName)
+
+		if errSqlRow != nil {
+			color.Red(errSqlRow.Error())
+			tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+			var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+				
+			if errTMPLerr != nil {
+				http.Error(w, "Error 666", 404)
+				return
+			}
+				
+			tmpl.ExecuteTemplate(w, "error", errData)
+			return
+		}
+
+		dehifrMessages = append(
+			dehifrMessages,
+			DeshifrPrivateMessageStruct{
+				ID:       messages[i].ID,
+				UserName: stringUserName,
+				Text:     string(stringText),
+				UserID:   messages[i].UserID,
+				PubDate:  messages[i].PubDate,
+			},
+		)
+	}
+
+	defer db.Close()
+
+	tmpl, errTmpl := template.ParseFiles("templates/privateChat.html", "templates/header.html", "templates/footer.html")
+
+	if errTmpl != nil {
+		color.Red(errTmpl.Error())
+		tmpl, errTMPLerr := template.ParseFiles("templates/err.html")
+		var errData ErrorDate = ErrorDate{"попробуйте зайти позже", r.Header.Get("Referer")}
+			
+		if errTMPLerr != nil {
+			http.Error(w, "Error 666", 404)
+			return
+		}
+			
+		tmpl.ExecuteTemplate(w, "error", errData)
+		return 
+	}
+
+	tmpl.ExecuteTemplate(w, "privateChat", dehifrMessages)
 }
 
 func handleRequest() {
@@ -1446,20 +1971,26 @@ func handleRequest() {
 	rtr.HandleFunc("/heKey/", heKey).Methods("POST")
 	rtr.HandleFunc("/updateMsg/", UpdateMsg).Methods("POST")
 	rtr.HandleFunc("/addLike/", AddLike).Methods("POST")
+	rtr.HandleFunc("/user-{id:[0-9]+}/", UserAcc).Methods("GET")
+	rtr.HandleFunc("/err/", ErrorFucn).Methods("GET")
+	rtr.HandleFunc("/updateAva/", UpdateAva).Methods("POST", "OPTIONS")
+	rtr.HandleFunc("/privateChat/{OneID:[0-9]+}-{TwoID:[0-9]+}/", PrivateChat).Methods("GET")
 	// fs := http.FileServer(http.Dir("./static/"))
 	// rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	
 	//rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))
 	
-	http.Handle("/", rtr)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	http.Handle("/", rtr)
+	
+
 	// HAHAH Danil перешел с питона на голэнг --
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "9000"
-	}
-	http.ListenAndServe(":" + port, context.ClearHandler(http.DefaultServeMux))
-	//http.ListenAndServe(":8080", nil)
+	// port := os.Getenv("PORT")
+	// if port == "" {
+	// 	port = "9000"
+	// }
+	// http.ListenAndServe(":" + port, context.ClearHandler(http.DefaultServeMux))
+	http.ListenAndServe(":8080", nil)
 }
 
 func main() {

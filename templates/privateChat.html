@@ -1,0 +1,9 @@
+
+{{ define "privateChat" }}
+{{ template "header" }}
+<section id="UsersChatSection">{{ range $m := . }}
+  <div class="Msg"><span>{{ $m.Name }}</span><br/>
+    <p>{{ $m.Text }}</p>
+  </div>{{ end }}
+</section>{{ template "footer" }}
+{{ end }}
